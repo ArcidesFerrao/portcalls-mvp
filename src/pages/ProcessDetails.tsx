@@ -634,28 +634,28 @@ function GeneralTab({
     { label: "Porto", value: process.port },
     { label: "Terminal", value: process.terminal || "—" },
     { label: "Coordenador", value: process.coordinator },
+    // {
+    //   label: "ETA",
+    //   value: process.eta
+    //     ? format(new Date(process.eta), "d MMM yyyy, HH:mm", { locale: pt })
+    //     : "—",
+    // },
     {
-      label: "ETA",
+      label: "ATA",
       value: process.eta
         ? format(new Date(process.eta), "d MMM yyyy, HH:mm", { locale: pt })
         : "—",
     },
-    {
-      label: "ATA",
-      value: process.ata
-        ? format(new Date(process.ata), "d MMM yyyy, HH:mm", { locale: pt })
-        : "—",
-    },
-    {
-      label: "ETD",
-      value: process.etd
-        ? format(new Date(process.etd), "d MMM yyyy, HH:mm", { locale: pt })
-        : "—",
-    },
+    // {
+    //   label: "ETD",
+    //   value: process.etd
+    //     ? format(new Date(process.etd), "d MMM yyyy, HH:mm", { locale: pt })
+    //     : "—",
+    // },
     {
       label: "ATD",
-      value: process.atd
-        ? format(new Date(process.atd), "d MMM yyyy, HH:mm", { locale: pt })
+      value: process.etd
+        ? format(new Date(process.etd), "d MMM yyyy, HH:mm", { locale: pt })
         : "—",
     },
     {
@@ -790,10 +790,10 @@ function MilestonesTab({
             className="flex items-center gap-4 p-4 bg-surface-2 border border-border rounded-lg"
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center border-border shrink-0 ${
                 ms.confirmed
-                  ? "bg-primary/20 text-primary"
-                  : "bg-surface-3 text-text-muted"
+                  ? "bg-primary/20 text-primary "
+                  : "bg-surface-2 text-text-muted"
               }`}
             >
               {ms.confirmed ? (
@@ -823,7 +823,7 @@ function MilestonesTab({
               onClick={() => !isClosed && onToggle(ms.id, !ms.confirmed)}
               disabled={isClosed}
               className={`shrink-0 w-10 h-6 rounded-full transition-colors relative ${
-                ms.confirmed ? "bg-primary" : "bg-surface-3"
+                ms.confirmed ? "bg-primary" : "bg-border"
               } ${isClosed ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
             >
               <div

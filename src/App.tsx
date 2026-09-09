@@ -43,7 +43,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   location.pathname === "/"
                     ? "text-primary bg-primary/10"
-                    : "text-text-secondary hover:text-white hover:bg-surface-2"
+                    : "text-text-secondary hover:text-white hover:bg-primary"
                 }`}
               >
                 Painel
@@ -53,7 +53,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   location.pathname === "/processes/new"
                     ? "text-primary bg-primary/10"
-                    : "text-text-secondary hover:text-white hover:bg-surface-2"
+                    : "text-text-secondary hover:text-white hover:bg-primary"
                 }`}
               >
                 Nova Operação
@@ -73,11 +73,11 @@ function Layout({ children }: { children: React.ReactNode }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-text-muted">
             <span>
-              © 2024 PortOps — Sistema de Gestão de Operações Portuárias
+              © 2026 PortOps — Sistema de Gestão de Operações Portuárias
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Sistema operacional
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
+              Sistema em fase de teste
             </span>
           </div>
         </div>
