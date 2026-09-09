@@ -30,12 +30,6 @@ export function validateProcess(data: { title: string; description?: string }): 
     errors.push({ field: 'title', message: 'Título é obrigatório' });
   } else if (data.title.trim().length < 3) {
     errors.push({ field: 'title', message: 'Título deve ter pelo menos 3 caracteres' });
-  } else if (data.title.trim().length > 200) {
-    errors.push({ field: 'title', message: 'Título não pode exceder 200 caracteres' });
-  }
-
-  if (data.description && data.description.length > 2000) {
-    errors.push({ field: 'description', message: 'Descrição não pode exceder 2000 caracteres' });
   }
 
   return {
@@ -79,13 +73,4 @@ export function formatFileSize(bytes: number): string {
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-}
-
-export function getFileIcon(mimeType: string): string {
-  if (mimeType.includes('pdf')) return 'file-text';
-  if (mimeType.includes('image')) return 'image';
-  if (mimeType.includes('word') || mimeType.includes('document')) return 'file-text';
-  if (mimeType.includes('excel') || mimeType.includes('sheet')) return 'table';
-  if (mimeType.includes('text')) return 'file';
-  return 'file';
 }

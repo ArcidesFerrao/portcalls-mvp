@@ -1,101 +1,65 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, X, FileText } from 'lucide-react';
+import { ArrowLeft, Ship } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Textarea } from '../components/ui/Textarea';
 import { Card } from '../components/ui/Card';
-import { createProcess, addFileToProcess } from '../lib/store';
-import { validateProcess, validateFile, sanitizeFileName, formatFileSize } from '../lib/validations';
-
-interface FileItem {
-  file: File;
-  id: string;
-}
+import { createProcess } from '../lib/store';
 
 export function NewProcess() {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [files, setFiles] = useState<FileItem[]>([]);
+  const [vesselName, setVesselName] = useState('');
+  const [imo, setImo] = useState('');
+  const [client, setClient] = useState('');
+  const [port, setPort] = useState('');
+  const [terminal, setTerminal] = useState('');
+  const [eta, setEta] = useState('');
+  const [etd, setEtd] = useState('');
+  const [coordinator, setCoordinator] = useState('');
+  const [observations, setObservations] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const selectedFiles = Array.from(e.target.files || []);
-    
-    const newFiles: FileItem[] = [];
-    const newErrors: Record<string, string> = {};
-
-    selectedFiles.forEach(file => {
-      const validation = validateFile(file);
-      if (!validation.success) {
-        newErrors.file = validation.errors[0].message;
-      } else {
-        newFiles.push({
-          file,
-          id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
-        });
-      }
-    });
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(prev => ({ ...prev, ...newErrors }));
-    } else {
-      setFiles(prev => [...prev, ...newFiles]);
-      setErrors(prev => { const { file, ...rest } = prev; return rest; });
-    }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }
-
-  function removeFile(id: string) {
-    setFiles(prev => prev.filter(f => f.id !== id));
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     
-    // Validate
-    const validation = validateProcess({ title, description });
-    if (!validation.success) {
-      const errorMap: Record<string, string> = {};
-      validation.errors.forEach(err => { errorMap[err.field] = err.message; });
-      setErrors(errorMap);
+    const newErrors: Record<string, string> = {};
+    if (!vesselName.trim()) newErrors.vesselName = 'Nome do navio é obrigatório';
+    if (!client.trim()) newErrors.client = 'Cliente é obrigatório';
+    if (!port.trim()) newErrors.port = 'Porto é obrigatório';
+    if (!coordinator.trim()) newErrors.coordinator = 'Coordenador é obrigatório';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
     setIsSubmitting(true);
-    setErrors({});
 
     try {
-      // Create process
-      const process = createProcess({ title: title.trim(), description: description.trim() || undefined });
-
-      // Add files
-      for (const fileItem of files) {
-        const sanitizedName = sanitizeFileName(fileItem.file.name);
-        addFileToProcess(process.id, {
-          name: sanitizedName,
-          originalName: fileItem.file.name,
-          mimeType: fileItem.file.type,
-          size: fileItem.file.size,
-        });
-      }
+      const process = createProcess({
+        vesselName: vesselName.trim(),
+        imo: imo.trim(),
+        client: client.trim(),
+        port: port.trim(),
+        terminal: terminal.trim(),
+        eta: eta || undefined,
+        etd: etd || undefined,
+        coordinator: coordinator.trim(),
+        observations: observations.trim() || undefined,
+      });
 
       navigate(`/processes/${process.id}`);
     } catch {
-      setErrors({ submit: 'Erro ao criar processo. Tente novamente.' });
+      setErrors({ submit: 'Erro ao criar operação. Tente novamente.' });
       setIsSubmitting(false);
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-4">
         <button
@@ -105,94 +69,100 @@ export function NewProcess() {
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-2xl font-bold font-[Syne]">Novo Processo</h1>
-          <p className="text-text-secondary text-sm">Preencha os dados para criar um novo processo</p>
+          <h1 className="text-2xl font-bold font-[Syne]">Nova Operação Portuária</h1>
+          <p className="text-text-secondary text-sm">Registar uma nova escala de navio</p>
         </div>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Vessel Info */}
         <Card className="p-6 space-y-5">
-          <Input
-            label="Título"
-            placeholder="Ex: Licença de Construção — Edifício A"
-            value={title}
-            onChange={(e) => { setTitle(e.target.value); setErrors(prev => { const { title, ...rest } = prev; return rest; }); }}
-            error={errors.title}
-            autoFocus
-          />
+          <div className="flex items-center gap-2 mb-4">
+            <Ship size={18} className="text-primary" />
+            <h3 className="font-semibold font-[Syne]">Dados do Navio</h3>
+          </div>
 
-          <Textarea
-            label="Descrição"
-            placeholder="Descreva o processo (opcional)"
-            value={description}
-            onChange={(e) => { setDescription(e.target.value); setErrors(prev => { const { description, ...rest } = prev; return rest; }); }}
-            error={errors.description}
-            rows={4}
-            hint="Máximo 2000 caracteres"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Nome do Navio"
+              placeholder="Ex: MSC AURORA"
+              value={vesselName}
+              onChange={(e) => { setVesselName(e.target.value); setErrors(prev => { const { vesselName, ...rest } = prev; return rest; }); }}
+              error={errors.vesselName}
+              autoFocus
+            />
+            <Input
+              label="IMO"
+              placeholder="Ex: 9839012"
+              value={imo}
+              onChange={(e) => setImo(e.target.value)}
+            />
+          </div>
+
+          <Input
+            label="Cliente / Principal"
+            placeholder="Ex: MSC — Mediterranean Shipping Company"
+            value={client}
+            onChange={(e) => { setClient(e.target.value); setErrors(prev => { const { client, ...rest } = prev; return rest; }); }}
+            error={errors.client}
           />
         </Card>
 
-        {/* File Upload */}
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium">Ficheiros</h3>
-            <span className="text-xs text-text-muted">{files.length} ficheiro(s)</span>
+        {/* Port Info */}
+        <Card className="p-6 space-y-5">
+          <h3 className="font-semibold font-[Syne]">Porto e Terminal</h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Porto"
+              placeholder="Ex: Porto de Sines"
+              value={port}
+              onChange={(e) => { setPort(e.target.value); setErrors(prev => { const { port, ...rest } = prev; return rest; }); }}
+              error={errors.port}
+            />
+            <Input
+              label="Terminal"
+              placeholder="Ex: Terminal XXI"
+              value={terminal}
+              onChange={(e) => setTerminal(e.target.value)}
+            />
           </div>
 
-          {errors.file && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
-              {errors.file}
-            </div>
-          )}
-
-          {/* File list */}
-          {files.length > 0 && (
-            <div className="space-y-2">
-              {files.map((fileItem) => (
-                <div
-                  key={fileItem.id}
-                  className="flex items-center justify-between p-3 bg-surface-2 border border-border rounded-lg"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FileText size={18} className="text-primary shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{fileItem.file.name}</p>
-                      <p className="text-xs text-text-muted">{formatFileSize(fileItem.file.size)}</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(fileItem.id)}
-                    className="p-1.5 rounded-lg text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Upload area */}
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
-          >
-            <Upload size={24} className="mx-auto text-text-muted mb-2" />
-            <p className="text-sm text-text-secondary">
-              Clique para selecionar ficheiros
-            </p>
-            <p className="text-xs text-text-muted mt-1">
-              PDF, imagens, documentos — Máx. 10MB
-            </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="ETA (Estimada)"
+              type="datetime-local"
+              value={eta}
+              onChange={(e) => setEta(e.target.value)}
+            />
+            <Input
+              label="ETD (Estimada)"
+              type="datetime-local"
+              value={etd}
+              onChange={(e) => setEtd(e.target.value)}
+            />
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx,.txt,.csv"
-            onChange={handleFileSelect}
-            className="hidden"
+        </Card>
+
+        {/* Coordinator & Observations */}
+        <Card className="p-6 space-y-5">
+          <h3 className="font-semibold font-[Syne]">Coordenação</h3>
+
+          <Input
+            label="Coordenador de Operações"
+            placeholder="Ex: Carlos Mendes"
+            value={coordinator}
+            onChange={(e) => { setCoordinator(e.target.value); setErrors(prev => { const { coordinator, ...rest } = prev; return rest; }); }}
+            error={errors.coordinator}
+          />
+
+          <Textarea
+            label="Observações"
+            placeholder="Notas sobre a operação (opcional)"
+            value={observations}
+            onChange={(e) => setObservations(e.target.value)}
+            rows={3}
           />
         </Card>
 
@@ -208,7 +178,7 @@ export function NewProcess() {
             Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'A criar...' : 'Criar Processo'}
+            {isSubmitting ? 'A criar...' : 'Criar Operação'}
           </Button>
         </div>
       </form>
