@@ -64,12 +64,12 @@ export function NewProcess() {
       <div className="flex items-center gap-4">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 rounded-lg text-text-muted hover:text-white hover:bg-surface-2 transition-colors"
+          className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-3 transition-colors"
         >
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-2xl font-bold font-[Syne]">Nova Operação Portuária</h1>
+          <h1 className="text-2xl font-bold font-[Inter]">Nova Operação Portuária</h1>
           <p className="text-text-secondary text-sm">Registar uma nova escala de navio</p>
         </div>
       </div>
@@ -80,7 +80,7 @@ export function NewProcess() {
         <Card className="p-6 space-y-5">
           <div className="flex items-center gap-2 mb-4">
             <Ship size={18} className="text-primary" />
-            <h3 className="font-semibold font-[Syne]">Dados do Navio</h3>
+            <h3 className="font-semibold font-[Inter]">Dados do Navio</h3>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -111,7 +111,7 @@ export function NewProcess() {
 
         {/* Port Info */}
         <Card className="p-6 space-y-5">
-          <h3 className="font-semibold font-[Syne]">Porto e Terminal</h3>
+          <h3 className="font-semibold font-[Inter]">Porto e Terminal</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
@@ -147,7 +147,7 @@ export function NewProcess() {
 
         {/* Coordinator & Observations */}
         <Card className="p-6 space-y-5">
-          <h3 className="font-semibold font-[Syne]">Coordenação</h3>
+          <h3 className="font-semibold font-[Inter]">Coordenação</h3>
 
           <Input
             label="Coordenador de Operações"
@@ -167,7 +167,7 @@ export function NewProcess() {
         </Card>
 
         {errors.submit && (
-          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
             {errors.submit}
           </div>
         )}

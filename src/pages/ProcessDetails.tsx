@@ -177,21 +177,21 @@ export function ProcessDetails() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div className="flex items-start gap-4">
-          <button onClick={() => navigate('/')} className="p-2 mt-1 rounded-lg text-text-muted hover:text-white hover:bg-surface-2 transition-colors">
+          <button onClick={() => navigate('/')} className="p-2 mt-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-3 transition-colors">
             <ArrowLeft size={20} />
           </button>
           <div>
             <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <span className="text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded">{process.fileNumber}</span>
-              <span className="text-xs font-mono text-text-muted bg-surface-3 px-2 py-0.5 rounded">{process.srfNumber}</span>
+              <span className="text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded font-semibold">{process.fileNumber}</span>
+              <span className="text-xs font-mono text-text-muted bg-gray-100 px-2 py-0.5 rounded">{process.srfNumber}</span>
               <StatusBadge status={process.status} />
               {pending > 0 && (
-                <span className="inline-flex items-center gap-1 text-xs text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">
+                <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
                   <AlertTriangle size={12} /> {pending} pendências
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold font-[Syne] flex items-center gap-2">
+            <h1 className="text-2xl font-bold font-[Inter] flex items-center gap-2">
               <Ship size={22} className="text-primary" />
               {process.vesselName}
             </h1>
@@ -207,7 +207,7 @@ export function ProcessDetails() {
           </div>
           <div className="w-24 h-24 relative">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#222" strokeWidth="3" />
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" strokeWidth="3" />
               <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1D9E75" strokeWidth="3"
                 strokeDasharray={`${process.progress} 100`} strokeLinecap="round" />
             </svg>
@@ -236,13 +236,13 @@ export function ProcessDetails() {
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg border-b-2 transition-colors whitespace-nowrap ${
               activeTab === tab.id
                 ? 'text-primary border-primary bg-primary/5'
-                : 'text-text-muted border-transparent hover:text-white hover:border-border-light'
+                : 'text-text-muted border-transparent hover:text-text-primary hover:border-border-light'
             }`}
           >
             {tab.icon}
             {tab.label}
             {tab.count !== undefined && tab.count > 0 && (
-              <span className="bg-surface-3 text-text-secondary text-xs px-1.5 py-0.5 rounded-full">{tab.count}</span>
+              <span className="bg-gray-100 text-text-secondary text-xs px-1.5 py-0.5 rounded-full">{tab.count}</span>
             )}
           </button>
         ))}
@@ -261,8 +261,8 @@ export function ProcessDetails() {
       {/* Close Modal */}
       <Modal isOpen={showCloseModal} onClose={() => setShowCloseModal(false)} title="Encerrar Operação">
         <div className="space-y-4">
-          <div className="flex items-start gap-3 p-4 bg-warning/10 border border-warning/20 rounded-lg">
-            <AlertTriangle size={20} className="text-warning shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <AlertTriangle size={20} className="text-amber-600 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm text-text-secondary">Tem a certeza que deseja encerrar esta operação?</p>
               <p className="text-xs text-text-muted mt-2">O ficheiro ficará apenas para consulta.</p>
@@ -298,7 +298,7 @@ function GeneralTab({ process, isEditing, editData, editErrors, setEditData, set
   if (isEditing) {
     return (
       <Card className="p-6 space-y-5">
-        <h3 className="font-semibold font-[Syne]">Editar Dados</h3>
+        <h3 className="font-semibold font-[Inter]">Editar Dados</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Navio" value={editData.vesselName} onChange={(e: any) => setEditData({ ...editData, vesselName: e.target.value })} error={editErrors.vesselName} />
           <Input label="IMO" value={editData.imo} onChange={(e: any) => setEditData({ ...editData, imo: e.target.value })} />
@@ -340,7 +340,7 @@ function GeneralTab({ process, isEditing, editData, editErrors, setEditData, set
   return (
     <div className="space-y-4">
       <Card className="p-6">
-        <h3 className="font-semibold font-[Syne] mb-4">Dados Gerais</h3>
+        <h3 className="font-semibold font-[Inter] mb-4">Dados Gerais</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {infoItems.map(item => (
             <div key={item.label}>
@@ -352,7 +352,7 @@ function GeneralTab({ process, isEditing, editData, editErrors, setEditData, set
       </Card>
       {process.observations && (
         <Card className="p-6">
-          <h3 className="font-semibold font-[Syne] mb-2">Observações</h3>
+          <h3 className="font-semibold font-[Inter] mb-2">Observações</h3>
           <p className="text-sm text-text-secondary">{process.observations}</p>
         </Card>
       )}
@@ -364,10 +364,10 @@ function GeneralTab({ process, isEditing, editData, editErrors, setEditData, set
 function AuthorizationsTab({ process, onAuthChange, isClosed }: { process: PortProcess; onAuthChange: (id: string, status: AuthorizationStatus) => void; isClosed: boolean }) {
   return (
     <Card className="p-6">
-      <h3 className="font-semibold font-[Syne] mb-4">Autorizações das Entidades</h3>
+      <h3 className="font-semibold font-[Inter] mb-4">Autorizações das Entidades</h3>
       <div className="space-y-3">
         {process.authorizations.map(auth => (
-          <div key={auth.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-surface-2 border border-border rounded-lg">
+          <div key={auth.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-gray-50 border border-border rounded-lg">
             <div className="flex-1">
               <p className="font-medium text-sm">{auth.entity}</p>
               <p className="text-xs text-text-muted">{auth.reason}</p>
@@ -380,7 +380,7 @@ function AuthorizationsTab({ process, onAuthChange, isClosed }: { process: PortP
                 onClick={() => !isClosed && onAuthChange(auth.id, 'RECEIVED')}
                 disabled={isClosed}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  auth.status === 'RECEIVED' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-surface-3 text-text-muted hover:text-primary hover:bg-primary/10'
+                  auth.status === 'RECEIVED' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-white text-text-muted hover:text-primary hover:bg-primary/5 border border-border'
                 } ${isClosed ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <CheckCircle2 size={14} /> Recebido
@@ -389,13 +389,13 @@ function AuthorizationsTab({ process, onAuthChange, isClosed }: { process: PortP
                 onClick={() => !isClosed && onAuthChange(auth.id, 'NOT_APPLICABLE')}
                 disabled={isClosed}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  auth.status === 'NOT_APPLICABLE' ? 'bg-text-muted/20 text-text-secondary border border-border' : 'bg-surface-3 text-text-muted hover:text-text-secondary hover:bg-surface-3'
+                  auth.status === 'NOT_APPLICABLE' ? 'bg-gray-100 text-text-secondary border border-border' : 'bg-white text-text-muted hover:text-text-secondary hover:bg-gray-50 border border-border'
                 } ${isClosed ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <MinusCircle size={14} /> N/A
               </button>
               {auth.status === 'PENDING' && (
-                <span className="flex items-center gap-1 text-xs text-amber-400">
+                <span className="flex items-center gap-1 text-xs text-amber-600">
                   <XCircle size={14} /> Pendente
                 </span>
               )}
@@ -413,17 +413,17 @@ function MilestonesTab({ process, onToggle, isClosed }: { process: PortProcess; 
   
   return (
     <Card className="p-6">
-      <h3 className="font-semibold font-[Syne] mb-4">Marcos da Escala</h3>
+      <h3 className="font-semibold font-[Inter] mb-4">Marcos da Escala</h3>
       <div className="space-y-2">
         {sortedMilestones.map((ms, idx) => (
-          <div key={ms.id} className="flex items-center gap-4 p-4 bg-surface-2 border border-border rounded-lg">
+          <div key={ms.id} className="flex items-center gap-4 p-4 bg-gray-50 border border-border rounded-lg">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-              ms.confirmed ? 'bg-primary/20 text-primary' : 'bg-surface-3 text-text-muted'
+              ms.confirmed ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-text-muted'
             }`}>
               {ms.confirmed ? <CheckCircle2 size={16} /> : <span className="text-xs font-medium">{idx + 1}</span>}
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`font-medium text-sm ${ms.confirmed ? 'text-white' : 'text-text-secondary'}`}>{ms.name}</p>
+              <p className={`font-medium text-sm ${ms.confirmed ? 'text-text-primary' : 'text-text-secondary'}`}>{ms.name}</p>
               {ms.description && <p className="text-xs text-text-muted">{ms.description}</p>}
               {ms.date && <p className="text-xs text-text-muted mt-0.5">{format(new Date(ms.date), "d MMM yyyy, HH:mm", { locale: pt })}</p>}
             </div>
@@ -431,10 +431,10 @@ function MilestonesTab({ process, onToggle, isClosed }: { process: PortProcess; 
               onClick={() => !isClosed && onToggle(ms.id, !ms.confirmed)}
               disabled={isClosed}
               className={`shrink-0 w-10 h-6 rounded-full transition-colors relative ${
-                ms.confirmed ? 'bg-primary' : 'bg-surface-3'
+                ms.confirmed ? 'bg-primary' : 'bg-gray-300'
               } ${isClosed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
                 ms.confirmed ? 'translate-x-4' : 'translate-x-0.5'
               }`} />
             </button>
@@ -465,14 +465,14 @@ function InvoicesTab({ process, onInvoiceChange, isClosed }: { process: PortProc
     <div className="space-y-4">
       {/* Missing Invoices */}
       {awaiting.length > 0 && (
-        <Card className="p-6 border-amber-500/20">
+        <Card className="p-6 border-amber-200">
           <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle size={18} className="text-amber-400" />
-            <h3 className="font-semibold font-[Syne] text-amber-400">Faturas em Falta ({awaiting.length})</h3>
+            <AlertTriangle size={18} className="text-amber-600" />
+            <h3 className="font-semibold font-[Inter] text-amber-700">Faturas em Falta ({awaiting.length})</h3>
           </div>
           <div className="space-y-2">
             {awaiting.map(inv => (
-              <div key={inv.id} className="p-4 bg-surface-2 border border-border rounded-lg">
+              <div key={inv.id} className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <p className="font-medium text-sm">{inv.entity}</p>
@@ -482,11 +482,11 @@ function InvoicesTab({ process, onInvoiceChange, isClosed }: { process: PortProc
                     <div className="flex items-center gap-2">
                       <input
                         type="text" placeholder="Ref." value={editRef} onChange={(e) => setEditRef(e.target.value)}
-                        className="w-24 px-2 py-1 bg-surface border border-border rounded text-xs text-white"
+                        className="w-24 px-2 py-1 bg-white border border-border rounded text-xs text-text-primary"
                       />
                       <input
                         type="number" placeholder="Valor" value={editAmount} onChange={(e) => setEditAmount(e.target.value)}
-                        className="w-24 px-2 py-1 bg-surface border border-border rounded text-xs text-white"
+                        className="w-24 px-2 py-1 bg-white border border-border rounded text-xs text-text-primary"
                       />
                       <Button size="sm" onClick={() => handleMarkReceived(inv)}>Confirmar</Button>
                       <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>×</Button>
@@ -508,11 +508,11 @@ function InvoicesTab({ process, onInvoiceChange, isClosed }: { process: PortProc
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <CheckCircle2 size={18} className="text-primary" />
-            <h3 className="font-semibold font-[Syne]">Faturas Recebidas ({received.length})</h3>
+            <h3 className="font-semibold font-[Inter]">Faturas Recebidas ({received.length})</h3>
           </div>
           <div className="space-y-2">
             {received.map(inv => (
-              <div key={inv.id} className="flex items-center justify-between p-4 bg-surface-2 border border-border rounded-lg">
+              <div key={inv.id} className="flex items-center justify-between p-4 bg-gray-50 border border-border rounded-lg">
                 <div>
                   <p className="font-medium text-sm">{inv.entity}</p>
                   <p className="text-xs text-text-muted">{inv.description}</p>
@@ -541,7 +541,7 @@ function FilesTab({ process, fileInputRef, fileError, onUpload, onDelete, isClos
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold font-[Syne]">Documentos ({process.files.length})</h3>
+        <h3 className="font-semibold font-[Inter]">Documentos ({process.files.length})</h3>
         {!isClosed && (
           <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} icon={<Upload size={16} />}>
             Adicionar
@@ -549,7 +549,7 @@ function FilesTab({ process, fileInputRef, fileError, onUpload, onDelete, isClos
         )}
       </div>
 
-      {fileError && <div className="p-3 mb-4 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">{fileError}</div>}
+      {fileError && <div className="p-3 mb-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{fileError}</div>}
 
       {process.files.length === 0 ? (
         <div className="text-center py-8">
@@ -559,7 +559,7 @@ function FilesTab({ process, fileInputRef, fileError, onUpload, onDelete, isClos
       ) : (
         <div className="space-y-2">
           {process.files.map(file => (
-            <div key={file.id} className="flex items-center justify-between p-3 bg-surface-2 border border-border rounded-lg">
+            <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 border border-border rounded-lg">
               <div className="flex items-center gap-3 min-w-0">
                 <FileText size={20} className="text-primary shrink-0" />
                 <div className="min-w-0">
@@ -572,7 +572,7 @@ function FilesTab({ process, fileInputRef, fileError, onUpload, onDelete, isClos
                   <Eye size={16} />
                 </button>
                 {!isClosed && (
-                  <button className="p-1.5 rounded-lg text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Remover" onClick={() => onDelete(file.id)}>
+                  <button className="p-1.5 rounded-lg text-text-muted hover:text-red-600 hover:bg-red-50 transition-colors" title="Remover" onClick={() => onDelete(file.id)}>
                     <Trash2 size={16} />
                   </button>
                 )}
@@ -593,7 +593,7 @@ function TimelineTab({ process }: { process: PortProcess }) {
 
   return (
     <Card className="p-6">
-      <h3 className="font-semibold font-[Syne] mb-4">Histórico de Eventos</h3>
+      <h3 className="font-semibold font-[Inter] mb-4">Histórico de Eventos</h3>
       {sortedEvents.length === 0 ? (
         <p className="text-text-muted text-sm text-center py-8">Sem eventos registados</p>
       ) : (
@@ -601,8 +601,8 @@ function TimelineTab({ process }: { process: PortProcess }) {
           {sortedEvents.map((event, idx) => (
             <div key={event.id} className="flex gap-4">
               <div className="flex flex-col items-center">
-                <div className={`w-3 h-3 rounded-full ${idx === 0 ? 'bg-primary' : 'bg-border'}`} />
-                {idx < sortedEvents.length - 1 && <div className="w-px flex-1 bg-border mt-1" />}
+                <div className={`w-3 h-3 rounded-full ${idx === 0 ? 'bg-primary' : 'bg-gray-300'}`} />
+                {idx < sortedEvents.length - 1 && <div className="w-px flex-1 bg-gray-200 mt-1" />}
               </div>
               <div className="flex-1 pb-4">
                 <p className="text-sm font-medium">{event.action}</p>

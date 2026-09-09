@@ -14,9 +14,9 @@ function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col">
+    <div className="min-h-screen bg-[#f8f9fa] flex flex-col">
       {/* Navigation */}
-      <header className="sticky top-0 z-40 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-border">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3 group">
@@ -24,7 +24,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 <Anchor size={20} className="text-primary" />
               </div>
               <div className="hidden sm:block">
-                <span className="font-[Syne] font-bold text-lg">PortOps</span>
+                <span className="font-[Inter] font-bold text-lg text-text-primary">PortOps</span>
                 <span className="text-text-muted text-xs block -mt-1">Gestão de Operações Portuárias</span>
               </div>
             </Link>
@@ -35,7 +35,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   location.pathname === '/'
                     ? 'text-primary bg-primary/10'
-                    : 'text-text-secondary hover:text-white hover:bg-surface-2'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-surface-3'
                 }`}
               >
                 Painel
@@ -45,7 +45,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   location.pathname === '/processes/new'
                     ? 'text-primary bg-primary/10'
-                    : 'text-text-secondary hover:text-white hover:bg-surface-2'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-surface-3'
                 }`}
               >
                 Nova Operação
@@ -61,7 +61,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border mt-auto">
+      <footer className="border-t border-border mt-auto bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-text-muted">
             <span>© 2024 PortOps — Sistema de Gestão de Operações Portuárias</span>

@@ -7,8 +7,8 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
   const styles = {
-    OPEN: 'bg-primary/10 text-primary border-primary/20',
-    CLOSED: 'bg-text-muted/10 text-text-muted border-text-muted/20',
+    OPEN: 'bg-primary/10 text-primary-dark border-primary/30',
+    CLOSED: 'bg-gray-100 text-gray-500 border-gray-200',
   };
 
   const labels = {
@@ -23,7 +23,7 @@ export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
 
   return (
     <span className={`inline-flex items-center font-medium rounded-full border ${styles[status]} ${sizes[size]}`}>
-      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${status === 'OPEN' ? 'bg-primary' : 'bg-text-muted'}`} />
+      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${status === 'OPEN' ? 'bg-primary' : 'bg-gray-400'}`} />
       {labels[status]}
     </span>
   );

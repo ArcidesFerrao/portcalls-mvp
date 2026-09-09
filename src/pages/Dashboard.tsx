@@ -48,7 +48,7 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold font-[Syne]">Painel de Operações</h1>
+          <h1 className="text-3xl font-bold font-[Inter]">Painel de Operações</h1>
           <p className="text-text-secondary mt-1">Gestão de escalas portuárias e documentação</p>
         </div>
         <Button
@@ -66,19 +66,19 @@ export function Dashboard() {
             <div className="flex flex-col gap-2">
               <div className={`p-2 rounded-lg w-fit ${
                 stat.color === 'primary' ? 'bg-primary/10' :
-                stat.color === 'muted' ? 'bg-surface-3' :
-                stat.color === 'warning' ? 'bg-amber-500/10' :
-                stat.color === 'blue' ? 'bg-blue-500/10' :
-                stat.color === 'orange' ? 'bg-orange-500/10' :
-                'bg-red-500/10'
+                stat.color === 'muted' ? 'bg-gray-100' :
+                stat.color === 'warning' ? 'bg-amber-50' :
+                stat.color === 'blue' ? 'bg-blue-50' :
+                stat.color === 'orange' ? 'bg-orange-50' :
+                'bg-red-50'
               }`}>
                 <stat.icon size={16} className={
                   stat.color === 'primary' ? 'text-primary' :
-                  stat.color === 'muted' ? 'text-text-muted' :
-                  stat.color === 'warning' ? 'text-amber-400' :
-                  stat.color === 'blue' ? 'text-blue-400' :
-                  stat.color === 'orange' ? 'text-orange-400' :
-                  'text-red-400'
+                  stat.color === 'muted' ? 'text-gray-500' :
+                  stat.color === 'warning' ? 'text-amber-600' :
+                  stat.color === 'blue' ? 'text-blue-600' :
+                  stat.color === 'orange' ? 'text-orange-600' :
+                  'text-red-600'
                 } />
               </div>
               <div>
@@ -99,14 +99,14 @@ export function Dashboard() {
             placeholder="Pesquisar por nº ficheiro, SRF, navio, cliente..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-surface-2 border border-border rounded-lg text-white placeholder-text-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-border rounded-lg text-text-primary placeholder-text-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
           />
         </div>
         <div className="flex items-center gap-2">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as ProcessStatus | 'ALL')}
-            className="px-4 py-2.5 bg-surface-2 border border-border rounded-lg text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+            className="px-4 py-2.5 bg-white border border-border rounded-lg text-text-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
           >
             <option value="ALL">Todos</option>
             <option value="OPEN">Abertos</option>
@@ -138,17 +138,17 @@ export function Dashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-surface-2/50">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Nº / SRF</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Navio</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Progresso</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Cliente</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Porto / Terminal</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">ATA / ATD</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Coordenador</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Estado</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Pend.</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Ação</th>
+                <tr className="border-b border-border bg-gray-50">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Nº / SRF</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Navio</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Progresso</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Cliente</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Porto / Terminal</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">ATA / ATD</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Coordenador</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Estado</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Pend.</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Ação</th>
                 </tr>
               </thead>
               <tbody>
@@ -159,29 +159,29 @@ export function Dashboard() {
                   return (
                     <tr 
                       key={process.id} 
-                      className="border-b border-border/50 hover:bg-surface-2/30 transition-colors cursor-pointer"
+                      className="border-b border-border/50 hover:bg-gray-50 transition-colors cursor-pointer"
                       onClick={() => navigate(`/processes/${process.id}`)}
                     >
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-mono text-primary text-xs font-medium">{process.fileNumber}</p>
+                          <p className="font-mono text-primary text-xs font-semibold">{process.fileNumber}</p>
                           <p className="text-text-muted text-xs">{process.srfNumber}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <Ship size={14} className="text-text-muted shrink-0" />
-                          <span className="font-medium text-white truncate max-w-[140px]">{process.vesselName}</span>
+                          <span className="font-medium text-text-primary truncate max-w-[140px]">{process.vesselName}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-surface-3 rounded-full overflow-hidden">
+                          <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                             <div 
                               className={`h-full rounded-full transition-all ${
                                 process.progress >= 80 ? 'bg-primary' :
-                                process.progress >= 50 ? 'bg-amber-400' :
-                                'bg-orange-400'
+                                process.progress >= 50 ? 'bg-amber-500' :
+                                'bg-orange-500'
                               }`}
                               style={{ width: `${process.progress}%` }}
                             />
@@ -211,7 +211,7 @@ export function Dashboard() {
                             </p>
                           )}
                           {!process.ata && process.eta && (
-                            <p className="text-amber-400">
+                            <p className="text-amber-600">
                               <Clock size={10} className="inline mr-1" />
                               ETA: {format(new Date(process.eta), 'dd/MM')}
                             </p>
@@ -230,7 +230,7 @@ export function Dashboard() {
                       <td className="px-4 py-3">
                         {pending > 0 ? (
                           <span className={`inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-full text-xs font-medium ${
-                            isCritical ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/10 text-amber-400'
+                            isCritical ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
                           }`}>
                             {pending}
                           </span>
@@ -239,7 +239,7 @@ export function Dashboard() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button className="inline-flex items-center gap-1 text-primary hover:text-primary-light text-xs font-medium transition-colors">
+                        <button className="inline-flex items-center gap-1 text-primary hover:text-primary-dark text-xs font-medium transition-colors">
                           Ver <ArrowRight size={12} />
                         </button>
                       </td>
