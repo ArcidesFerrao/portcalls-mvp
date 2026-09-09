@@ -20,9 +20,9 @@ export function Button({
   
   const variants = {
     primary: 'bg-primary hover:bg-primary-light text-white focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed',
-    secondary: 'bg-white border border-border hover:border-primary hover:text-primary text-text-secondary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed',
-    danger: 'bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed',
-    ghost: 'text-text-secondary hover:text-text-primary hover:bg-surface-3 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed',
+    secondary: 'bg-surface-2 border border-border hover:border-primary hover:text-primary text-text-secondary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed',
+    danger: 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed',
+    ghost: 'text-text-secondary hover:text-white hover:bg-surface-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed',
   };
 
   const sizes = {
