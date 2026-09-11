@@ -1,6 +1,7 @@
 export type ProcessStatus = 'OPEN' | 'CLOSED';
 export type AuthorizationStatus = 'RECEIVED' | 'NOT_APPLICABLE' | 'PENDING';
 export type InvoiceStatus = 'RECEIVED' | 'AWAITING';
+export type StorageMode = 'SharePoint' | 'Local';
 
 export interface ProcessFile {
   id: string;
@@ -12,12 +13,18 @@ export interface ProcessFile {
   url: string;
   storageKey: string;
   createdAt: string;
+  
+  // SharePoint fields
+  sharepointDriveId?: string;
+  sharepointItemId?: string;
+  sharepointWebUrl?: string;
+  storageMode: StorageMode;
 }
 
 export interface Authorization {
   id: string;
   processId: string;
-  entity: string; // Saúde, Alfândega, Imigração, Polícia Marítima, Intransmar
+  entity: string;
   reason: string;
   status: AuthorizationStatus;
   receivedAt: string | null;
@@ -70,7 +77,7 @@ export interface PortProcess {
   coordinator: string;
   status: ProcessStatus;
   observations: string | null;
-  progress: number; // 0-100
+  progress: number;
   
   createdAt: string;
   updatedAt: string;

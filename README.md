@@ -154,6 +154,80 @@ npm run build
 
 ---
 
+## ☁️ Integração com SharePoint
+
+O sistema suporta dois modos de armazenamento de documentos:
+
+### Modo Local (Padrão)
+- Apenas metadados são guardados no localStorage
+- Sem upload real de ficheiros
+- Ideal para testes e demonstração
+
+### Modo SharePoint
+- Ficheiros guardados no SharePoint da empresa
+- Partilhados com todos os departamentos
+- Integração via Microsoft Graph API
+
+#### Configuração
+
+1. Aceda à página **Configurações** (ícone ⚙️ no menu)
+2. Selecione **SharePoint** como modo de armazenamento
+3. Preencha os dados:
+   - **URL do Site SharePoint**: `https://empresa.sharepoint.com/sites/portos`
+   - **Nome da Biblioteca**: `Documentos`
+   - **Pasta Raiz**: `Processos`
+   - **Tenant ID**: ID do Azure AD
+   - **Client ID**: ID da aplicação registada
+   - **Client Secret**: Secret da aplicação
+
+4. Clique em **Validar Conexão** para testar
+5. Se válido, clique em **Guardar Configuração**
+
+#### Estrutura de Pastas no SharePoint
+
+```
+SharePoint
+└── Documentos (Biblioteca)
+    └── Processos (Pasta raiz configurável)
+        ├── PC-2026-001 (ID do processo)
+        │   ├── Contrato.pdf
+        │   └── Fatura.pdf
+        │
+        └── PC-2026-002
+            ├── Licenca.pdf
+            └── Relatorio.pdf
+```
+
+#### Permissões Microsoft Graph
+
+A aplicação registada no Azure AD precisa das seguintes permissões:
+- `Sites.ReadWrite.All` — Acesso ao site SharePoint
+- `Files.ReadWrite.All` — Leitura e escrita de ficheiros
+
+#### Como Obter Credenciais
+
+1. Aceda ao [Azure Portal](https://portal.azure.com)
+2. Vá a **Azure Active Directory** → **App registrations** → **New registration**
+3. Registe uma nova aplicação e copie o **Application (client) ID**
+4. Em **Certificates & secrets**, crie um novo **Client secret**
+5. Em **API permissions**, adicione:
+   - Microsoft Graph → Application permissions
+   - `Sites.ReadWrite.All`
+   - `Files.ReadWrite.All`
+6. Clique em **Grant admin consent**
+7. Copie o **Tenant ID** da página **Overview** do Azure AD
+
+#### Vantagens do Modo SharePoint
+
+✅ **Partilha entre departamentos** — Operações, Financeiro, e outros acedem aos mesmos documentos  
+✅ **Backup automático** — SharePoint faz backup nativo  
+✅ **Controlo de versões** — Histórico de alterações dos documentos  
+✅ **Segurança empresarial** — Autenticação Microsoft 365  
+✅ **Sem duplicação** — Ficheiros guardados uma única vez  
+✅ **Acesso offline** — SharePoint suporta sincronização offline
+
+---
+
 ## 🚀 Funcionalidades
 
 ### ✅ Implementadas
@@ -179,14 +253,15 @@ npm run build
 
 ### 🔄 Próximas Funcionalidades
 
+- [x] ~~Integração com SharePoint via Microsoft Graph API~~ ✅
 - [ ] Integração com base de dados cloud (PostgreSQL/Supabase)
-- [ ] Upload real de ficheiros para storage (S3/Azure Blob)
 - [ ] Autenticação e autorização de utilizadores
 - [ ] Multi-utilizador com roles (Coordenador, Gestor, Financeiro)
 - [ ] Exportação de relatórios (PDF/Excel)
 - [ ] Notificações por email
 - [ ] API REST para integração com outros sistemas
-- [ ] Backup automático para cloud
+- [ ] Sincronização bidirecional com SharePoint (ler ficheiros existentes)
+- [ ] Webhooks para notificações em tempo real
 
 ---
 
@@ -264,18 +339,46 @@ npm run build
 
 ### Persistência de Dados
 
-Atualmente, o sistema utiliza **localStorage** para persistência local. Os dados são guardados no navegador do utilizador e **não são sincronizados com servidor**.
+O sistema suporta dois modos de armazenamento:
 
-**Limitações:**
-- ❌ Dados perdidos ao limpar cache do navegador
-- ❌ Sem backup automático
-- ❌ Sem sincronização entre dispositivos
-- ❌ Ficheiros físicos não são guardados (apenas metadados)
+#### Modo Local (localStorage)
+- Dados dos processos guardados no navegador
+- **Limitações:**
+  - ❌ Dados perdidos ao limpar cache
+  - ❌ Sem sincronização entre dispositivos
+  - ❌ Ficheiros físicos não são guardados (apenas metadados)
 
-**Próximos passos:**
-- Integrar com base de dados cloud (PostgreSQL/Supabase)
-- Implementar upload real de ficheiros para storage (S3/Azure Blob)
-- Adicionar sistema de backup automático
+#### Modo SharePoint
+- Processos guardados em localStorage (metadados)
+- **Ficheiros guardados no SharePoint** via Microsoft Graph API
+- ✅ Backup automático (SharePoint)
+- ✅ Partilha entre departamentos
+- ✅ Controlo de versões
+- ✅ Segurança empresarial
+
+### Arquitetura de Integração
+
+```
+┌─────────────────┐
+│   Aplicação     │
+│   (React)       │
+└────────┬────────┘
+         │
+         ├─→ localStorage (metadados dos processos)
+         │
+         └─→ Microsoft Graph API
+              │
+              └─→ SharePoint
+                   │
+                   └─→ Ficheiros físicos
+```
+
+### Próximos Passos
+
+- Migrar metadados para base de dados cloud (PostgreSQL/Supabase)
+- Implementar sincronização bidirecional com SharePoint
+- Adicionar sistema de autenticação multi-utilizador
+- Implementar webhooks para notificações em tempo real
 
 ### Estrutura do Projeto
 
@@ -292,11 +395,15 @@ src/
 ├── lib/
 │   ├── store.ts               # Gestão de estado (localStorage)
 │   ├── types.ts               # Tipos TypeScript
-│   └── validations.ts         # Validações de formulários
+│   ├── validations.ts         # Validações de formulários
+│   ├── config.ts              # Configuração do SharePoint
+│   ├── sharepoint.ts          # Serviço Microsoft Graph API
+│   └── sharepoint-types.ts    # Tipos SharePoint
 ├── pages/
 │   ├── Dashboard.tsx          # Painel de operações
 │   ├── NewProcess.tsx         # Criar nova operação
-│   └── ProcessDetails.tsx     # Detalhes da operação
+│   ├── ProcessDetails.tsx     # Detalhes da operação
+│   └── Setup.tsx              # Configuração de armazenamento
 ├── App.tsx                    # Router e layout
 ├── main.tsx                   # Entry point
 └── index.css                  # Estilos globais
@@ -306,10 +413,12 @@ src/
 
 ## 🐛 Problemas Conhecidos
 
-1. **Ficheiros não são guardados fisicamente** — Apenas metadados são armazenados
-2. **Sem autenticação** — Qualquer pessoa pode aceder e editar
-3. **Sem backup** — Dados podem ser perdidos ao limpar cache
+1. **Modo Local: Ficheiros não são guardados fisicamente** — Apenas metadados são armazenados no localStorage
+2. **Sem autenticação na aplicação** — Qualquer pessoa pode aceder e editar (SharePoint tem autenticação própria)
+3. **Modo Local: Sem backup** — Dados podem ser perdidos ao limpar cache
 4. **localStorage limitado** — Máximo ~5-10MB dependendo do navegador
+5. **CORS no SharePoint** — Pode ser necessário configurar CORS no SharePoint para permitir chamadas da aplicação
+6. **Token caching** — O token de acesso é guardado em memória (perdido ao recarregar a página)
 
 ---
 

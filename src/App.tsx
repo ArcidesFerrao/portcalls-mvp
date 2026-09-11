@@ -6,11 +6,13 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useEffect } from "react";
-import { Anchor } from "lucide-react";
+import { Anchor, Settings } from "lucide-react";
 import { Dashboard } from "./pages/Dashboard";
 import { NewProcess } from "./pages/NewProcess";
 import { ProcessDetails } from "./pages/ProcessDetails";
+import { Setup } from "./pages/Setup";
 import { seedDemoData } from "./lib/store";
+import { isSharePointConfigured } from "./lib/config";
 
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -18,6 +20,8 @@ function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     seedDemoData();
   }, []);
+
+  const isConfigured = isSharePointConfigured();
 
   return (
     <div className="min-h-screen bg-[#e0f5f5] flex flex-col">
@@ -58,6 +62,17 @@ function Layout({ children }: { children: React.ReactNode }) {
               >
                 Nova Operação
               </Link>
+              <Link
+                to="/setup"
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location.pathname === "/setup"
+                    ? "text-primary bg-primary/10"
+                    : "text-text-secondary hover:text-white hover:bg-surface-2"
+                }`}
+                title="Configuração de Armazenamento"
+              >
+                <Settings size={16} />
+              </Link>
             </nav>
           </div>
         </div>
@@ -76,8 +91,8 @@ function Layout({ children }: { children: React.ReactNode }) {
               © 2024 PortOps — Sistema de Gestão de Operações Portuárias
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Sistema operacional
+              <span className={`w-1.5 h-1.5 rounded-full ${isConfigured ? 'bg-primary' : 'bg-amber-400'} animate-pulse`} />
+              {isConfigured ? 'SharePoint conectado' : 'Modo local'}
             </span>
           </div>
         </div>
@@ -94,6 +109,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/processes/new" element={<NewProcess />} />
           <Route path="/processes/:id" element={<ProcessDetails />} />
+          <Route path="/setup" element={<Setup />} />
         </Routes>
       </Layout>
     </BrowserRouter>

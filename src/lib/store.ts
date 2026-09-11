@@ -393,7 +393,7 @@ export function updateInvoice(processId: string, invoiceId: string, data: Partia
   return processes[index];
 }
 
-// Add file
+// Add file (local storage mode)
 export function addFileToProcess(processId: string, file: {
   name: string;
   originalName: string;
@@ -417,6 +417,46 @@ export function addFileToProcess(processId: string, file: {
     url: `#${storageKey}`,
     storageKey,
     createdAt: new Date().toISOString(),
+    storageMode: 'Local',
+  };
+
+  processes[index].files.push(newFile);
+  processes[index].updatedAt = new Date().toISOString();
+  
+  saveProcesses(processes);
+  return newFile;
+}
+
+// Add SharePoint file to process
+export function addSharePointFileToProcess(processId: string, file: {
+  name: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  driveId: string;
+  itemId: string;
+  webUrl: string;
+}): ProcessFile | null {
+  const processes = getProcesses();
+  const index = processes.findIndex(p => p.id === processId);
+  if (index === -1) return null;
+
+  const fileId = uuidv4();
+  
+  const newFile: ProcessFile = {
+    id: fileId,
+    processId,
+    name: file.name,
+    originalName: file.originalName,
+    mimeType: file.mimeType,
+    size: file.size,
+    url: file.webUrl,
+    storageKey: `sharepoint/${file.driveId}/${file.itemId}`,
+    createdAt: new Date().toISOString(),
+    sharepointDriveId: file.driveId,
+    sharepointItemId: file.itemId,
+    sharepointWebUrl: file.webUrl,
+    storageMode: 'SharePoint',
   };
 
   processes[index].files.push(newFile);

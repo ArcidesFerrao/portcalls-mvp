@@ -36,6 +36,7 @@ import {
   updateMilestone,
   updateInvoice,
   addFileToProcess,
+  addSharePointFileToProcess,
   removeFileFromProcess,
   getPendingCount,
 } from "../lib/store";
@@ -47,6 +48,8 @@ import {
 import { PortProcess, AuthorizationStatus, InvoiceStatus } from "../lib/types";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
+import { isSharePointConfigured } from "../lib/config";
+import { uploadFile as uploadToSharePoint, deleteFile as deleteFromSharePoint } from "../lib/sharepoint";
 
 type TabId =
   | "general"
@@ -184,31 +187,69 @@ export function ProcessDetails() {
     if (updated) setProcess(updated);
   }
 
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     if (!process) return;
     const files = Array.from(e.target.files || []);
-    files.forEach((file) => {
+    const useSharePoint = isSharePointConfigured();
+    
+    for (const file of files) {
       const validation = validateFile(file);
       if (!validation.success) {
         setFileError(validation.errors[0].message);
-        return;
+        continue;
       }
-      addFileToProcess(process.id, {
-        name: sanitizeFileName(file.name),
-        originalName: file.name,
-        mimeType: file.type,
-        size: file.size,
-      });
-    });
+
+      try {
+        if (useSharePoint) {
+          // Upload to SharePoint
+          const spFile = await uploadToSharePoint(file, process.id);
+          addSharePointFileToProcess(process.id, {
+            name: spFile.name,
+            originalName: spFile.originalName,
+            mimeType: spFile.mimeType,
+            size: spFile.size,
+            driveId: spFile.driveId,
+            itemId: spFile.itemId,
+            webUrl: spFile.webUrl,
+          });
+        } else {
+          // Local storage (metadata only)
+          addFileToProcess(process.id, {
+            name: sanitizeFileName(file.name),
+            originalName: file.name,
+            mimeType: file.type,
+            size: file.size,
+          });
+        }
+      } catch (error: any) {
+        setFileError(`Upload failed: ${error.message}`);
+      }
+    }
+    
     loadProcess();
     setFileError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  function handleDeleteFile(fileId: string) {
+  async function handleDeleteFile(fileId: string) {
     if (!process) return;
-    removeFileFromProcess(process.id, fileId);
-    loadProcess();
+    
+    const file = process.files.find(f => f.id === fileId);
+    if (!file) return;
+
+    try {
+      // If SharePoint file, delete from SharePoint
+      if (file.storageMode === 'SharePoint' && file.sharepointItemId) {
+        await deleteFromSharePoint(file.sharepointItemId);
+      }
+      
+      // Remove from process
+      removeFileFromProcess(process.id, fileId);
+      loadProcess();
+    } catch (error: any) {
+      setFileError(`Delete failed: ${error.message}`);
+    }
+    
     setShowDeleteFileModal(null);
   }
 
@@ -1001,12 +1042,21 @@ function FilesTab({
   onDelete: (id: string) => void;
   isClosed: boolean;
 }) {
+  const hasSharePointFiles = process.files.some(f => f.storageMode === 'SharePoint');
+  
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold font-[Syne]">
-          Documentos ({process.files.length})
-        </h3>
+        <div>
+          <h3 className="font-semibold font-[Syne]">
+            Documentos ({process.files.length})
+          </h3>
+          {hasSharePointFiles && (
+            <p className="text-xs text-primary mt-1">
+              ☁️ Guardados no SharePoint
+            </p>
+          )}
+        </div>
         {!isClosed && (
           <Button
             variant="secondary"
@@ -1045,21 +1095,31 @@ function FilesTab({
                   <p className="text-sm font-medium truncate">
                     {file.originalName}
                   </p>
-                  <p className="text-xs text-text-muted">
-                    {formatFileSize(file.size)} —{" "}
-                    {format(new Date(file.createdAt), "d MMM yyyy", {
-                      locale: pt,
-                    })}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-text-muted">
+                      {formatFileSize(file.size)} —{" "}
+                      {format(new Date(file.createdAt), "d MMM yyyy", {
+                        locale: pt,
+                      })}
+                    </p>
+                    {file.storageMode === 'SharePoint' && (
+                      <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                        SharePoint
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <button
+                <a
+                  href={file.sharepointWebUrl || file.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-colors"
-                  title="Ver"
+                  title="Ver no SharePoint"
                 >
                   <Eye size={16} />
-                </button>
+                </a>
                 {!isClosed && (
                   <button
                     className="p-1.5 rounded-lg text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
