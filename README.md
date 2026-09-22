@@ -129,8 +129,16 @@ Frontend:
 ├── date-fns (formatação de datas)
 └── uuid (geração de IDs únicos)
 
+Backend (server/):
+├── Node.js
+├── Express.js
+├── TypeScript
+├── Prisma ORM
+└── PostgreSQL
+
 Storage:
-└── localStorage (persistência local)
+├── PostgreSQL (metadados e referências)
+└── SharePoint (ficheiros físicos via Microsoft Graph API)
 ```
 
 ---
@@ -339,74 +347,130 @@ A aplicação registada no Azure AD precisa das seguintes permissões:
 
 ### Persistência de Dados
 
-O sistema suporta dois modos de armazenamento:
+O sistema suporta **duas camadas de armazenamento**:
 
-#### Modo Local (localStorage)
-- Dados dos processos guardados no navegador
-- **Limitações:**
-  - ❌ Dados perdidos ao limpar cache
-  - ❌ Sem sincronização entre dispositivos
-  - ❌ Ficheiros físicos não são guardados (apenas metadados)
+#### 1. Base de Dados (PostgreSQL) — Metadados
+- **Todos os metadados** dos processos são guardados na base de dados PostgreSQL do cliente
+- Processos, autorizações, marcos, faturas, referências a ficheiros, timeline
+- **Vantagens:**
+  - ✅ Múltiplos utilizadores/dispositivos
+  - ✅ Dados centralizados e seguros
+  - ✅ Backup e controlo total pelo cliente
+  - ✅ Performance e escalabilidade
 
-#### Modo SharePoint
-- Processos guardados em localStorage (metadados)
-- **Ficheiros guardados no SharePoint** via Microsoft Graph API
-- ✅ Backup automático (SharePoint)
-- ✅ Partilha entre departamentos
-- ✅ Controlo de versões
-- ✅ Segurança empresarial
+#### 2. SharePoint — Ficheiros Físicos
+- **Ficheiros físicos** guardados no SharePoint da empresa
+- A aplicação guarda apenas **referências** (driveId, itemId, webUrl) no PostgreSQL
+- **Vantagens:**
+  - ✅ Partilha entre departamentos
+  - ✅ Backup automático (SharePoint)
+  - ✅ Controlo de versões
+  - ✅ Segurança empresarial
+  - ✅ Sem duplicação de ficheiros
 
 ### Arquitetura de Integração
 
 ```
 ┌─────────────────┐
-│   Aplicação     │
-│   (React)       │
+│   Frontend      │
+│   (React/Vite)  │
+└────────┬────────┘
+         │ HTTP/REST
+         ▼
+┌─────────────────┐
+│   Backend API   │
+│   (Express.js)  │
+│   (server/)     │
 └────────┬────────┘
          │
-         ├─→ localStorage (metadados dos processos)
+         ├─→ PostgreSQL (metadados)
+         │   └─→ Referências SharePoint
          │
          └─→ Microsoft Graph API
               │
-              └─→ SharePoint
-                   │
-                   └─→ Ficheiros físicos
+              └─→ SharePoint (ficheiros físicos)
 ```
+
+### Instalação do Backend
+
+```bash
+# 1. Ir para a pasta do servidor
+cd server
+
+# 2. Instalar dependências
+npm install
+
+# 3. Configurar base de dados
+cp .env.example .env
+# Editar .env com DATABASE_URL
+
+# 4. Criar base de dados
+# No PostgreSQL: CREATE DATABASE portops;
+
+# 5. Executar migrações
+npm run db:generate
+npm run db:push
+
+# 6. Iniciar servidor
+npm run dev
+```
+
+Ver [server/README.md](server/README.md) para documentação completa do backend.
 
 ### Próximos Passos
 
-- Migrar metadados para base de dados cloud (PostgreSQL/Supabase)
-- Implementar sincronização bidirecional com SharePoint
-- Adicionar sistema de autenticação multi-utilizador
-- Implementar webhooks para notificações em tempo real
+- [x] ~~Integração com PostgreSQL~~ ✅
+- [x] ~~Integração com SharePoint~~ ✅
+- [ ] Implementar sincronização bidirecional com SharePoint
+- [ ] Adicionar sistema de autenticação multi-utilizador (JWT/OAuth2)
+- [ ] Implementar webhooks para notificações em tempo real
+- [ ] Adicionar sistema de roles e permissões
 
 ### Estrutura do Projeto
 
 ```
-src/
-├── components/
-│   └── ui/                    # Componentes reutilizáveis
-│       ├── Button.tsx
-│       ├── Card.tsx
-│       ├── Input.tsx
-│       ├── Textarea.tsx
-│       ├── Modal.tsx
-│       └── StatusBadge.tsx
-├── lib/
-│   ├── store.ts               # Gestão de estado (localStorage)
-│   ├── types.ts               # Tipos TypeScript
-│   ├── validations.ts         # Validações de formulários
-│   ├── config.ts              # Configuração do SharePoint
-│   ├── sharepoint.ts          # Serviço Microsoft Graph API
-│   └── sharepoint-types.ts    # Tipos SharePoint
-├── pages/
-│   ├── Dashboard.tsx          # Painel de operações
-│   ├── NewProcess.tsx         # Criar nova operação
-│   ├── ProcessDetails.tsx     # Detalhes da operação
-│   └── Setup.tsx              # Configuração de armazenamento
-├── App.tsx                    # Router e layout
-├── main.tsx                   # Entry point
-└── index.css                  # Estilos globais
+portcalls-mvp/
+│
+├── src/                       # Frontend (React/Vite)
+│   ├── components/
+│   │   └── ui/                # Componentes reutilizáveis
+│   │       ├── Button.tsx
+│   │       ├── Card.tsx
+│   │       ├── Input.tsx
+│   │       ├── Textarea.tsx
+│   │       ├── Modal.tsx
+│   │       └── StatusBadge.tsx
+│   ├── lib/
+│   │   ├── store.ts           # Gestão de estado (fallback localStorage)
+│   │   ├── api.ts             # Cliente API (comunicação com backend)
+│   │   ├── types.ts           # Tipos TypeScript
+│   │   ├── validations.ts     # Validações de formulários
+│   │   ├── config.ts          # Configuração do SharePoint
+│   │   ├── sharepoint.ts      # Serviço Microsoft Graph API
+│   │   └── sharepoint-types.ts # Tipos SharePoint
+│   ├── pages/
+│   │   ├── Dashboard.tsx      # Painel de operações
+│   │   ├── NewProcess.tsx     # Criar nova operação
+│   │   ├── ProcessDetails.tsx # Detalhes da operação
+│   │   └── Setup.tsx          # Configuração (DB + SharePoint)
+│   ├── App.tsx                # Router e layout
+│   ├── main.tsx               # Entry point
+│   └── index.css              # Estilos globais
+│
+├── server/                    # Backend (Express + Prisma)
+│   ├── src/
+│   │   └── index.ts           # Servidor Express + API REST
+│   ├── prisma/
+│   │   └── schema.prisma      # Schema PostgreSQL
+│   ├── .env.example           # Template de configuração
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── README.md              # Documentação do backend
+│
+├── index.html
+├── package.json
+├── vite.config.js
+└── README.md
 ```
 
 ---

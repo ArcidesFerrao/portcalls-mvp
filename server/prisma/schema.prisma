@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Process {
+  id           String         @id @default(cuid())
+  fileNumber   String         @unique
+  srfNumber    String         @unique
+  vesselName   String
+  imo          String?
+  client       String
+  port         String
+  terminal     String?
+  eta          DateTime?
+  ata          DateTime?
+  etd          DateTime?
+  atd          DateTime?
+  coordinator  String
+  status       ProcessStatus  @default(OPEN)
+  observations String?
+  progress     Int            @default(0)
+  
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  closedAt     DateTime?
+
+  authorizations Authorization[]
+  milestones     Milestone[]
+  invoices       Invoice[]
+  files          File[]
+  events         TimelineEvent[]
+
+  @@map("processes")
+}
+
+model Authorization {
+  id         String             @id @default(cuid())
+  processId  String
+  entity     String
+  reason     String
+  status     AuthorizationStatus @default(PENDING)
+  receivedAt DateTime?
+
+  process    Process @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  @@index([processId])
+  @@map("authorizations")
+}
+
+model Milestone {
+  id          String   @id @default(cuid())
+  processId   String
+  name        String
+  description String?
+  date        DateTime?
+  confirmed   Boolean  @default(false)
+  order       Int
+
+  process     Process @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  @@index([processId])
+  @@map("milestones")
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  processId   String
+  entity      String
+  description String
+  reference   String?
+  status      InvoiceStatus @default(AWAITING)
+  amount      Decimal?
+  receivedAt  DateTime?
+  dueDate     DateTime?
+
+  process     Process @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  @@index([processId])
+  @@map("invoices")
+}
+
+model File {
+  id                  String   @id @default(cuid())
+  processId           String
+  name                String
+  originalName        String
+  mimeType            String
+  size                Int
+  url                 String
+  storageKey          String
+  
+  // SharePoint fields
+  sharepointDriveId   String?
+  sharepointItemId    String?
+  sharepointWebUrl    String?
+  storageMode         String   @default("Local")
+  
+  createdAt           DateTime @default(now())
+
+  process             Process @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  @@index([processId])
+  @@map("files")
+}
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  processId   String
+  action      String
+  description String
+  timestamp   DateTime @default(now())
+  user        String
+
+  process     Process @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  @@index([processId])
+  @@map("timeline_events")
+}
+
+enum ProcessStatus {
+  OPEN
+  CLOSED
+}
+
+enum AuthorizationStatus {
+  RECEIVED
+  NOT_APPLICABLE
+  PENDING
+}
+
+enum InvoiceStatus {
+  RECEIVED
+  AWAITING
+}
