@@ -22,17 +22,18 @@ Registar, acompanhar e fechar operações de navios em portos, garantindo o cont
 
 Lista todas as operações com métricas em tempo real:
 
-| Métrica | Descrição |
-|---------|-----------|
-| Total Ficheiros | Número total de operações registadas |
-| Abertos | Operações em curso |
-| Fechados | Operações encerradas |
-| Aguard. Chegada | Navios ainda não atracados |
-| Aguard. Partida | Navios atracados, aguardando saída |
-| Faturas Pendentes | Faturas ainda não recebidas |
-| Críticos | Operações com ≥5 pendências ou ETD < 48h |
+| Métrica           | Descrição                                |
+| ----------------- | ---------------------------------------- |
+| Total Ficheiros   | Número total de operações registadas     |
+| Abertos           | Operações em curso                       |
+| Fechados          | Operações encerradas                     |
+| Aguard. Chegada   | Navios ainda não atracados               |
+| Aguard. Partida   | Navios atracados, aguardando saída       |
+| Faturas Pendentes | Faturas ainda não recebidas              |
+| Críticos          | Operações com ≥5 pendências ou ETD < 48h |
 
 **Para cada operação exibe:**
+
 - Nº do ficheiro e SRF (referência interna)
 - Nome do navio (IMO)
 - Barra de progresso visual (0-100%)
@@ -48,13 +49,16 @@ Lista todas as operações com métricas em tempo real:
 Ao aceder a uma operação, o sistema apresenta 6 separadores:
 
 #### 1. **Geral**
+
 - Dados completos do navio, cliente, porto, terminal
 - Datas ETA/ATA/ETD/ATD
 - Coordenador e observações
 - Edição inline de todos os campos
 
 #### 2. **Autorizações**
+
 Tabela com as entidades portuárias:
+
 - Saúde Portuária
 - Alfândega
 - Imigração
@@ -64,30 +68,36 @@ Tabela com as entidades portuárias:
 Cada autorização pode estar: **Recebida** | **Não Aplicável** | **Pendente**
 
 #### 3. **Marcos da Escala**
+
 10 etapas cronológicas com toggle de confirmação:
+
 1. Receção do Pedido
 2. Agendamento
 3. Notificação Autoridades
-4. Chegada do Navio (ATA) — *auto-regista ATA*
+4. Chegada do Navio (ATA) — _auto-regista ATA_
 5. Início de Operações
 6. Fim de Operações
-7. Partida do Navio (ATD) — *auto-regista ATD*
+7. Partida do Navio (ATD) — _auto-regista ATD_
 8. Recolha de Faturas
 9. Handover Financeiro
 10. Encerramento
 
 #### 4. **Faturas**
+
 - **Secção "Em Falta"** (destaque âmbar): Faturas ainda não recebidas
 - **Secção "Recebidas"**: Faturas com referência e valor
 - Possibilidade de marcar como recebida com referência e montante
 
 #### 5. **Documentos**
+
 - Upload de ficheiros (PDF, imagens, documentos)
 - Visualização e remoção
 - Validação de tamanho (máx. 10MB) e tipo
 
 #### 6. **Histórico**
+
 Timeline cronológica de todos os eventos:
+
 - Criação do ficheiro
 - Atualizações de autorizações
 - Confirmação de marcos
@@ -99,19 +109,23 @@ Timeline cronológica de todos os eventos:
 ## 🎨 Design System
 
 ### Tema Visual
+
 - **Background principal**: `#e0f5f5` (tom água/menta)
 - **Background body**: `#f4f5fa` (tom azulado suave)
 - **Header**: `#f8f9f7` (off-white quente com blur)
 - **Border**: `#d1d5da` (cinza visível para contraste)
 
 ### Tipografia
+
 - **Headings**: `Syne` — fonte geométrica e moderna
 - **Body**: `DM Sans` — legibilidade otimizada
 
 ### Cor Primária
+
 - `#1D9E75` — verde portuário/marítimo
 
 ### Estética
+
 Fundo claro com componentes internos em estética dark (textos brancos, cards com `bg-surface-2`), criando um contraste elegante e profissional.
 
 ---
@@ -167,11 +181,13 @@ npm run build
 O sistema suporta dois modos de armazenamento de documentos:
 
 ### Modo Local (Padrão)
+
 - Apenas metadados são guardados no localStorage
 - Sem upload real de ficheiros
 - Ideal para testes e demonstração
 
 ### Modo SharePoint
+
 - Ficheiros guardados no SharePoint da empresa
 - Partilhados com todos os departamentos
 - Integração via Microsoft Graph API
@@ -209,6 +225,7 @@ SharePoint
 #### Permissões Microsoft Graph
 
 A aplicação registada no Azure AD precisa das seguintes permissões:
+
 - `Sites.ReadWrite.All` — Acesso ao site SharePoint
 - `Files.ReadWrite.All` — Leitura e escrita de ficheiros
 
@@ -298,7 +315,7 @@ A aplicação registada no Azure AD precisa das seguintes permissões:
   createdAt: string;
   updatedAt: string;
   closedAt: string | null;
-  
+
   authorizations: Authorization[];
   milestones: Milestone[];
   invoices: Invoice[];
@@ -335,11 +352,11 @@ A aplicação registada no Azure AD precisa das seguintes permissões:
 
 ## 👥 Utilizadores-Tipo
 
-| Perfil | Responsabilidades |
-|--------|-------------------|
-| **Coordenador de Operações** | Atualiza dados, etapas e estados |
-| **Gestor de Ficheiros** | Supervisiona progresso e pendências |
-| **Financeiro** | Consulta faturas recebidas e a receber |
+| Perfil                       | Responsabilidades                      |
+| ---------------------------- | -------------------------------------- |
+| **Coordenador de Operações** | Atualiza dados, etapas e estados       |
+| **Gestor de Ficheiros**      | Supervisiona progresso e pendências    |
+| **Financeiro**               | Consulta faturas recebidas e a receber |
 
 ---
 
@@ -350,6 +367,7 @@ A aplicação registada no Azure AD precisa das seguintes permissões:
 O sistema suporta **duas camadas de armazenamento**:
 
 #### 1. Base de Dados (PostgreSQL) — Metadados
+
 - **Todos os metadados** dos processos são guardados na base de dados PostgreSQL do cliente
 - Processos, autorizações, marcos, faturas, referências a ficheiros, timeline
 - **Vantagens:**
@@ -359,6 +377,7 @@ O sistema suporta **duas camadas de armazenamento**:
   - ✅ Performance e escalabilidade
 
 #### 2. SharePoint — Ficheiros Físicos
+
 - **Ficheiros físicos** guardados no SharePoint da empresa
 - A aplicação guarda apenas **referências** (driveId, itemId, webUrl) no PostgreSQL
 - **Vantagens:**
@@ -501,7 +520,7 @@ Este projeto é proprietário. Todos os direitos reservados.
 
 ## 🙏 Agradecimentos
 
-Desenvolvido com base nas necessidades operacionais de gestão portuária em Portugal.
+Desenvolvido com base nas necessidades operacionais de gestão portuária em Moçambique.
 
 ---
 
@@ -509,6 +528,6 @@ Desenvolvido com base nas necessidades operacionais de gestão portuária em Por
 
 **PortOps** — Gestão de Operações Portuárias
 
-*Construído com React + TypeScript + Tailwind CSS*
+_Construído com React + TypeScript + Tailwind CSS_
 
 </div>
