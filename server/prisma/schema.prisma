@@ -4,122 +4,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-model Process {
-  id           String         @id @default(cuid())
-  fileNumber   String         @unique
-  srfNumber    String         @unique
-  vesselName   String
-  imo          String?
-  client       String
-  port         String
-  terminal     String?
-  eta          DateTime?
-  ata          DateTime?
-  etd          DateTime?
-  atd          DateTime?
-  coordinator  String
-  status       ProcessStatus  @default(OPEN)
-  observations String?
-  progress     Int            @default(0)
-  
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  closedAt     DateTime?
-
-  authorizations Authorization[]
-  milestones     Milestone[]
-  invoices       Invoice[]
-  files          File[]
-  events         TimelineEvent[]
-
-  @@map("processes")
-}
-
-model Authorization {
-  id         String             @id @default(cuid())
-  processId  String
-  entity     String
-  reason     String
-  status     AuthorizationStatus @default(PENDING)
-  receivedAt DateTime?
-
-  process    Process @relation(fields: [processId], references: [id], onDelete: Cascade)
-
-  @@index([processId])
-  @@map("authorizations")
-}
-
-model Milestone {
-  id          String   @id @default(cuid())
-  processId   String
-  name        String
-  description String?
-  date        DateTime?
-  confirmed   Boolean  @default(false)
-  order       Int
-
-  process     Process @relation(fields: [processId], references: [id], onDelete: Cascade)
-
-  @@index([processId])
-  @@map("milestones")
-}
-
-model Invoice {
-  id          String        @id @default(cuid())
-  processId   String
-  entity      String
-  description String
-  reference   String?
-  status      InvoiceStatus @default(AWAITING)
-  amount      Decimal?
-  receivedAt  DateTime?
-  dueDate     DateTime?
-
-  process     Process @relation(fields: [processId], references: [id], onDelete: Cascade)
-
-  @@index([processId])
-  @@map("invoices")
-}
-
-model File {
-  id                  String   @id @default(cuid())
-  processId           String
-  name                String
-  originalName        String
-  mimeType            String
-  size                Int
-  url                 String
-  storageKey          String
-  
-  // SharePoint fields
-  sharepointDriveId   String?
-  sharepointItemId    String?
-  sharepointWebUrl    String?
-  storageMode         String   @default("Local")
-  
-  createdAt           DateTime @default(now())
-
-  process             Process @relation(fields: [processId], references: [id], onDelete: Cascade)
-
-  @@index([processId])
-  @@map("files")
-}
-
-model TimelineEvent {
-  id          String   @id @default(cuid())
-  processId   String
-  action      String
-  description String
-  timestamp   DateTime @default(now())
-  user        String
-
-  process     Process @relation(fields: [processId], references: [id], onDelete: Cascade)
-
-  @@index([processId])
-  @@map("timeline_events")
+enum Role {
+  ADMIN
+  COORDENADOR
+  GESTOR
+  FINANCEIRO
 }
 
 enum ProcessStatus {
@@ -136,4 +27,275 @@ enum AuthorizationStatus {
 enum InvoiceStatus {
   RECEIVED
   AWAITING
+}
+
+enum StorageMode {
+  LOCAL
+  SHAREPOINT
+}
+
+enum TokenPurpose {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+// ─────────────── Identidade e organizações ───────────────
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  invitations Invitation[]
+  processes   Process[]
+  sharepoint  SharePointConnection?
+
+  @@map("organizations")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique // guardar sempre em minúsculas
+  passwordHash    String
+  name            String
+  emailVerifiedAt DateTime?
+  disabledAt      DateTime? // desativar, nunca apagar: a timeline depende do utilizador
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  memberships          Membership[]
+  sessions             Session[]
+  tokens               VerificationToken[]
+  processesCoordinated Process[]           @relation("ProcessCoordinator")
+  events               TimelineEvent[]
+
+  @@map("users")
+}
+
+model Membership {
+  userId         String
+  organizationId String
+  role           Role     @default(COORDENADOR)
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, organizationId])
+  @@index([organizationId])
+  @@map("memberships")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Invitation {
+  id             String    @id @default(cuid())
+  organizationId String
+  email          String
+  role           Role
+  tokenHash      String    @unique
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, email])
+  @@map("invitations")
+}
+
+// Verificação de e-mail e reset de palavra-passe
+model VerificationToken {
+  id        String       @id @default(cuid())
+  userId    String
+  purpose   TokenPurpose
+  tokenHash String       @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+  @@map("verification_tokens")
+}
+
+// ─────────────── Integração SharePoint (por organização) ───────────────
+
+model SharePointConnection {
+  id              String    @id @default(cuid())
+  organizationId  String    @unique
+  azureTenantId   String
+  clientId        String
+  encryptedSecret String // cifrado na aplicação; a chave NUNCA fica na base de dados
+  siteUrl         String
+  libraryName     String    @default("Documentos")
+  rootFolderName  String    @default("Processos")
+  // identificadores estáveis, resolvidos ao validar a ligação
+  siteId          String?
+  driveId         String?
+  rootFolderId    String?
+  verifiedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("sharepoint_connections")
+}
+
+// ─────────────── Operações ───────────────
+
+model Process {
+  id             String        @id @default(cuid())
+  organizationId String
+  fileNumber     String
+  srfNumber      String
+  vesselName     String
+  imo            String?
+  client         String
+  port           String
+  terminal       String?
+  eta            DateTime?
+  ata            DateTime?
+  etd            DateTime?
+  atd            DateTime?
+  coordinatorId  String
+  status         ProcessStatus @default(OPEN)
+  observations   String?
+  progress       Int           @default(0)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  closedAt  DateTime?
+  deletedAt DateTime? // apagar = marcar aqui; nunca DELETE real
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  coordinator  User         @relation("ProcessCoordinator", fields: [coordinatorId], references: [id], onDelete: Restrict)
+
+  authorizations Authorization[]
+  milestones     Milestone[]
+  invoices       Invoice[]
+  files          File[]
+  events         TimelineEvent[]
+
+  @@unique([organizationId, fileNumber])
+  @@unique([organizationId, srfNumber])
+  @@unique([id, organizationId]) // permite a chave composta nos filhos
+  @@index([organizationId, status])
+  @@index([organizationId, eta])
+  @@index([coordinatorId])
+  @@map("processes")
+}
+
+// Todos os filhos repetem organizationId e usam chave composta
+// (processId, organizationId): a base de dados garante que o filho
+// pertence à mesma organização que o processo.
+
+model Authorization {
+  id             String              @id @default(cuid())
+  organizationId String
+  processId      String
+  entity         String
+  reason         String
+  status         AuthorizationStatus @default(PENDING)
+  receivedAt     DateTime?
+
+  process Process @relation(fields: [processId, organizationId], references: [id, organizationId], onDelete: Cascade)
+
+  @@index([organizationId, processId])
+  @@map("authorizations")
+}
+
+model Milestone {
+  id             String    @id @default(cuid())
+  organizationId String
+  processId      String
+  name           String
+  description    String?
+  date           DateTime?
+  confirmed      Boolean   @default(false)
+  order          Int
+
+  process Process @relation(fields: [processId, organizationId], references: [id, organizationId], onDelete: Cascade)
+
+  @@unique([processId, order])
+  @@index([organizationId, processId])
+  @@map("milestones")
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  organizationId String
+  processId      String
+  entity         String
+  description    String
+  reference      String?
+  status         InvoiceStatus @default(AWAITING)
+  amount         Decimal?      @db.Decimal(14, 2)
+  currency       String        @default("USD") // MZN | USD | EUR: escolhe o default certo
+  receivedAt     DateTime?
+  dueDate        DateTime?
+
+  process Process @relation(fields: [processId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@index([organizationId, processId])
+  @@index([organizationId, status])
+  @@map("invoices")
+}
+
+model File {
+  id             String  @id @default(cuid())
+  organizationId String
+  processId      String
+  name           String
+  originalName   String
+  mimeType       String
+  size           Int
+  url            String
+  storageKey     String
+  checksum       String?
+
+  storageMode       StorageMode @default(LOCAL)
+  sharepointDriveId String?
+  sharepointItemId  String?
+  sharepointWebUrl  String?
+
+  createdAt DateTime @default(now())
+
+  process Process @relation(fields: [processId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@index([organizationId, processId])
+  @@map("files")
+}
+
+model TimelineEvent {
+  id             String   @id @default(cuid())
+  organizationId String
+  processId      String
+  action         String
+  description    String
+  timestamp      DateTime @default(now())
+  userId         String
+
+  process Process @relation(fields: [processId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, processId])
+  @@index([userId])
+  @@map("timeline_events")
 }
