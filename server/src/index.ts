@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
+import cookieParser from "cookie-parser";
+import { authRouter } from "./routes/auth";
+import { originCheck } from "./middleware/originCheck";
 
 dotenv.config();
 
@@ -11,6 +14,11 @@ const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+app.set("trust proxy", 1);
+app.use(express.json());
+app.use(cookieParser());
+app.use("/api", originCheck);
+app.use("/api/auth", authRouter);
 app.use(cors());
 app.use(express.json());
 
