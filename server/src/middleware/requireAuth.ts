@@ -1,5 +1,26 @@
 import type { NextFunction, Request, Response } from "express";
+import type { Role } from "@prisma/client";
 import { COOKIE_NAME, findSession, setSessionCookie } from "../lib/sessions";
+
+export interface AuthContext {
+  sessionId: string;
+  userId: string;
+  name: string;
+  email: string;
+  organizationId: string;
+  organizationName: string;
+  role: Role;
+}
+
+// Declarado aqui (e não num .d.ts à parte) para o TypeScript o apanhar
+// sempre que este ficheiro é importado, sem depender do tsconfig.
+declare global {
+  namespace Express {
+    interface Request {
+      auth?: AuthContext;
+    }
+  }
+}
 
 export async function requireAuth(
   req: Request,
