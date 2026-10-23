@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { UNAUTHORIZED_EVENT } from "./api";
 
 export type Role = "ADMIN" | "COORDENADOR" | "GESTOR" | "FINANCEIRO";
 
@@ -57,6 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh();
   }, [refresh]);
 
+  // Se a sessão expirar a meio do uso, qualquer pedido da API responde 401
+  // e o api.ts emite este evento. Limpar o utilizador faz o ProtectedRoute
+  // mandar para o login.
+  useEffect(() => {
+    const onUnauthorized = () => setUser(null);
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+  }, []);
+
   const login = useCallback(
     async (email: string, password: string) => {
       const res = await request("/auth/login", {
@@ -69,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       await refresh();
     },
-    [refresh]
+    [refresh],
   );
 
   const logout = useCallback(async () => {
@@ -86,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth tem de ser usado dentro de <AuthProvider>");
+  if (!ctx)
+    throw new Error("useAuth tem de ser usado dentro de <AuthProvider>");
   return ctx;
 }
