@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://portcalls.evolurelabs.com/api/:path*"
+      "destination": "https://portops-api.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
