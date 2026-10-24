@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: portops-api
+    name: portcalls-mvp
     runtime: node
     region: frankfurt
     plan: free
