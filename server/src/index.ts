@@ -17,7 +17,10 @@ import { statsRouter } from "./routes/stats";
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.set("trust proxy", 1);
+// Quantos proxies existem entre o utilizador e o servidor. Em produção
+// (Vercel -> Render) são 2; em desenvolvimento, 1 chega.
+// Se estiver errado, o limite de tentativas do login conta mal os IPs.
+app.set("trust proxy", Number(process.env.TRUST_PROXY_HOPS ?? 1));
 app.use(express.json({ limit: "100kb" }));
 app.use(cookieParser());
 
