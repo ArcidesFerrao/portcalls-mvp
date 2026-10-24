@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { Role, useAuth } from "../lib/auth";
+import { Role, useAuth } from "../../lib/auth";
 // import { useAuth, type Role } from "../../lib/auth";
 
 interface Props {
