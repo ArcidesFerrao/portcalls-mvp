@@ -62,3 +62,33 @@ export const DEFAULT_INVOICES = [
   { entity: "Amarradores", description: "Serviço de Amarração" },
   { entity: "Agência", description: "Taxas de Agência Marítima" },
 ];
+
+// O progresso é calculado no servidor, numa só fórmula, sempre que algo muda:
+// autorizações tratadas + marcos confirmados + faturas recebidas + estado fechado.
+export async function recomputeProgress(
+  tx: Prisma.TransactionClient,
+  processId: string
+) {
+  const p = await tx.process.findUniqueOrThrow({
+    where: { id: processId },
+    select: {
+      status: true,
+      authorizations: { select: { status: true } },
+      milestones: { select: { confirmed: true } },
+      invoices: { select: { status: true } },
+    },
+  });
+
+  const total =
+    p.authorizations.length + p.milestones.length + p.invoices.length + 1;
+  const done =
+    p.authorizations.filter((a) => a.status !== "PENDING").length +
+    p.milestones.filter((m) => m.confirmed).length +
+    p.invoices.filter((i) => i.status === "RECEIVED").length +
+    (p.status === "CLOSED" ? 1 : 0);
+
+  await tx.process.update({
+    where: { id: processId },
+    data: { progress: Math.round((done / total) * 100) },
+  });
+}

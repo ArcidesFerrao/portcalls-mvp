@@ -1,8 +1,13 @@
-import { Router } from "express";
+import { Router, type Response } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { HttpError, dateInput, h, optionalText, param, parse } from "../lib/http";
 import { canInvoice, canOperate } from "../lib/permissions";
+import {
+  processInclude,
+  recomputeProgress,
+  serializeProcess,
+} from "../lib/processes";
 
 export const itemsRouter = Router();
 
@@ -11,6 +16,16 @@ const notFound = (what: string) => new HttpError(404, `${what} não encontrado.`
 // Regra de ouro: antes de mexer num item, confirmar que pertence à empresa
 // da sessão (e a um processo não apagado). Sem isto, quem souber um id
 // de outra empresa conseguia alterá-lo.
+
+// Depois de cada alteração devolvemos a operação inteira, já com o progresso
+// e a timeline atualizados: o frontend substitui o estado de uma só vez.
+async function sendProcess(res: Response, processId: string) {
+  const full = await prisma.process.findUniqueOrThrow({
+    where: { id: processId },
+    include: processInclude,
+  });
+  res.json(serializeProcess(full));
+}
 
 // ============ AUTORIZAÇÕES ============
 
@@ -40,15 +55,16 @@ itemsRouter.patch(
     });
     if (!existing) throw notFound("Autorização");
 
-    const [updated] = await prisma.$transaction([
-      prisma.authorization.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.authorization.update({
         where: { id: existing.id },
         data: {
           status,
-          receivedAt: status === "RECEIVED" ? new Date() : null,
+          receivedAt:
+            status === "RECEIVED" ? (existing.receivedAt ?? new Date()) : null,
         },
-      }),
-      prisma.timelineEvent.create({
+      });
+      await tx.timelineEvent.create({
         data: {
           organizationId,
           processId: existing.processId,
@@ -56,10 +72,11 @@ itemsRouter.patch(
           action: "Autorização Atualizada",
           description: `${existing.entity}: ${AUTH_LABELS[status]}`,
         },
-      }),
-    ]);
+      });
+      await recomputeProgress(tx, existing.processId);
+    });
 
-    res.json(updated);
+    await sendProcess(res, existing.processId);
   })
 );
 
@@ -86,7 +103,7 @@ itemsRouter.patch(
     });
     if (!existing) throw notFound("Marco");
 
-    const milestone = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       const m = await tx.milestone.update({
         where: { id: existing.id },
         data: { confirmed, date: date ?? (confirmed ? new Date() : null) },
@@ -115,24 +132,25 @@ itemsRouter.patch(
           description: m.name,
         },
       });
-
-      return m;
+      await recomputeProgress(tx, m.processId);
     });
 
-    res.json(milestone);
+    await sendProcess(res, existing.processId);
   })
 );
 
 // ============ FATURAS ============
 
+// Atualização parcial: o que não vier no pedido fica como está
 const invoiceSchema = z.object({
-  status: z.enum(["RECEIVED", "AWAITING"]),
-  reference: optionalText(100),
+  status: z.enum(["RECEIVED", "AWAITING"]).optional(),
+  reference: optionalText(100).optional(),
   amount: z.preprocess(
     (v) => (v === "" ? null : v),
     z.coerce.number().nonnegative().max(1e12).nullish()
   ),
   currency: z.enum(["MZN", "USD", "EUR"]).optional(),
+  dueDate: dateInput.optional(),
 });
 
 itemsRouter.patch(
@@ -140,7 +158,7 @@ itemsRouter.patch(
   canInvoice,
   h(async (req, res) => {
     const { organizationId, userId } = req.auth!;
-    const { status, reference, amount, currency } = parse(
+    const { status, reference, amount, currency, dueDate } = parse(
       invoiceSchema,
       req.body
     );
@@ -154,31 +172,37 @@ itemsRouter.patch(
     });
     if (!existing) throw notFound("Fatura");
 
-    const [updated] = await prisma.$transaction([
-      prisma.invoice.update({
+    const nextStatus = status ?? existing.status;
+
+    await prisma.$transaction(async (tx) => {
+      // Campos undefined: o Prisma ignora-os, ficam como estavam
+      await tx.invoice.update({
         where: { id: existing.id },
         data: {
-          status,
+          status: nextStatus,
           reference,
-          amount: amount ?? null,
-          ...(currency ? { currency } : {}),
-          receivedAt: status === "RECEIVED" ? new Date() : null,
+          amount,
+          currency,
+          dueDate,
+          receivedAt:
+            nextStatus === "RECEIVED" ? (existing.receivedAt ?? new Date()) : null,
         },
-      }),
-      prisma.timelineEvent.create({
+      });
+      await tx.timelineEvent.create({
         data: {
           organizationId,
           processId: existing.processId,
           userId,
           action: "Fatura Atualizada",
           description: `${existing.entity} — ${
-            status === "RECEIVED" ? "Recebida" : "A receber"
+            nextStatus === "RECEIVED" ? "Recebida" : "A receber"
           }`,
         },
-      }),
-    ]);
+      });
+      await recomputeProgress(tx, existing.processId);
+    });
 
-    res.json(updated);
+    await sendProcess(res, existing.processId);
   })
 );
 

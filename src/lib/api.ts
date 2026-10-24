@@ -158,14 +158,18 @@ export async function apiCloseProcess(id: string): Promise<PortProcess> {
 
 // ============ AUTHORIZATIONS ============
 
+// As alterações a autorizações, marcos e faturas devolvem a operação completa,
+// já com o progresso e a timeline atualizados.
 export async function apiUpdateAuthorization(
   id: string,
   status: AuthorizationStatus
-): Promise<any> {
-  return fetchApi(`/api/authorizations/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify({ status }),
-  });
+): Promise<PortProcess> {
+  return normalizeProcess(
+    await fetchApi<PortProcess>(`/api/authorizations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    })
+  );
 }
 
 // ============ MILESTONES ============
@@ -174,11 +178,13 @@ export async function apiUpdateMilestone(
   id: string,
   confirmed: boolean,
   date?: string
-): Promise<any> {
-  return fetchApi(`/api/milestones/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify({ confirmed, date }),
-  });
+): Promise<PortProcess> {
+  return normalizeProcess(
+    await fetchApi<PortProcess>(`/api/milestones/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ confirmed, date }),
+    })
+  );
 }
 
 // ============ INVOICES ============
@@ -186,16 +192,19 @@ export async function apiUpdateMilestone(
 export async function apiUpdateInvoice(
   id: string,
   data: {
-    status: InvoiceStatus;
+    status?: InvoiceStatus;
     reference?: string;
     amount?: number;
     currency?: "MZN" | "USD" | "EUR";
+    dueDate?: string;
   }
-): Promise<any> {
-  return fetchApi(`/api/invoices/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
+): Promise<PortProcess> {
+  return normalizeProcess(
+    await fetchApi<PortProcess>(`/api/invoices/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    })
+  );
 }
 
 // ============ FILES ============

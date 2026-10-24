@@ -10,6 +10,7 @@ import {
   generateFileNumber,
   generateSrfNumber,
   processInclude,
+  recomputeProgress,
   serializeProcess,
 } from "../lib/processes";
 
@@ -144,7 +145,6 @@ const updateSchema = z
     etd: dateInput,
     atd: dateInput,
     observations: optionalText(2000),
-    progress: z.number().int().min(0).max(100),
   })
   .partial();
 
@@ -181,7 +181,7 @@ processesRouter.post(
     await prisma.$transaction(async (tx) => {
       const { count } = await tx.process.updateMany({
         where: { id, organizationId, deletedAt: null, status: "OPEN" },
-        data: { status: "CLOSED", closedAt: new Date(), progress: 100 },
+        data: { status: "CLOSED", closedAt: new Date() },
       });
       if (count === 0) {
         throw new HttpError(404, "Operação não encontrada ou já encerrada.");
@@ -195,6 +195,7 @@ processesRouter.post(
           description: "Operação encerrada",
         },
       });
+      await recomputeProgress(tx, id);
     });
 
     const full = await prisma.process.findUniqueOrThrow({
