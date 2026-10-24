@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: portops-api
+    runtime: node
+    region: frankfurt
+    plan: free
+    rootDir: server
+    # --include=dev: o tsx e o prisma são devDependencies e o Render
+    # instala só as dependências de produção por defeito.
+    buildCommand: npm install --include=dev && npx prisma generate
+    startCommand: npx tsx src/index.ts
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: APP_ORIGIN
+        value: https://portcalls.evolurelabs.com
+      # Vercel -> Render: dois proxies à frente do servidor
+      - key: TRUST_PROXY_HOPS
+        value: "2"
+      # O Render pede o valor ao criar o serviço (não fica no repositório)
+      - key: DATABASE_URL
+        sync: false
