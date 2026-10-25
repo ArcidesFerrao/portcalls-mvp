@@ -96,13 +96,24 @@ function normalizeFile<F extends { storageMode?: string }>(file: F): F {
   return mode ? { ...file, storageMode: mode } : file;
 }
 
+// O Prisma serializa Decimal como texto ("45000.00"); a interface usa número.
+function normalizeInvoice<I extends { amount?: unknown }>(invoice: I): I {
+  if (invoice.amount === null || invoice.amount === undefined) return invoice;
+  return { ...invoice, amount: Number(invoice.amount) };
+}
+
 function normalizeProcess<P extends object>(process: P): P {
-  const files = (process as { files?: unknown[] }).files;
-  if (!Array.isArray(files)) return process;
-  return {
-    ...process,
-    files: files.map((f) => normalizeFile(f as { storageMode?: string })),
-  } as P;
+  const raw = process as { files?: unknown[]; invoices?: unknown[] };
+  const next = { ...(process as Record<string, unknown>) };
+
+  if (Array.isArray(raw.files)) {
+    next.files = raw.files.map((f) => normalizeFile(f as { storageMode?: string }));
+  }
+  if (Array.isArray(raw.invoices)) {
+    next.invoices = raw.invoices.map((i) => normalizeInvoice(i as { amount?: unknown }));
+  }
+
+  return next as unknown as P;
 }
 
 // ============ PROCESSES ============

@@ -34,16 +34,6 @@ export default function Header() {
 
           <nav className="flex items-center gap-1">
             <Link
-              to="/"
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                location.pathname === "/"
-                  ? "text-primary bg-primary/10"
-                  : "text-text-secondary hover:text-white hover:bg-surface-2"
-              }`}
-            >
-              Painel
-            </Link>
-            <Link
               to="/processes/new"
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 location.pathname === "/processes/new"

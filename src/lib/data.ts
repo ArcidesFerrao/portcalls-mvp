@@ -78,6 +78,7 @@ export const updateInvoice = (
     status?: InvoiceStatus;
     reference?: string;
     amount?: number;
+    currency?: "MZN" | "USD" | "EUR";
     dueDate?: string;
   }
 ): Promise<PortProcess> => apiUpdateInvoice(invoiceId, data);
