@@ -8,3 +8,6 @@ export const canOperate = requireRole("ADMIN", "COORDENADOR");
 
 // Atualizar faturas
 export const canInvoice = requireRole("ADMIN", "COORDENADOR", "FINANCEIRO");
+
+// Convites e gestão de membros
+export const canManageTeam = requireRole("ADMIN");

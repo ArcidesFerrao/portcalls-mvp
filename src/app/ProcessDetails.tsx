@@ -46,6 +46,8 @@ import {
   removeFileFromProcess,
 } from "../lib/data";
 import { ApiError } from "../lib/api";
+import { useAuth } from "../lib/auth";
+import { canInvoice, canOperate } from "../lib/permissions";
 import { getPendingCount } from "../lib/processUtils";
 import { ROUTES } from "../lib/routes";
 import {
@@ -144,6 +146,9 @@ const EMPTY_EDIT: EditData = {
 export function ProcessDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const mayOperate = canOperate(user?.role);
+  const mayInvoice = canInvoice(user?.role);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [process, setProcess] = useState<PortProcess | null>(null);
@@ -397,7 +402,10 @@ export function ProcessDetails() {
   }
 
   const isClosed = process.status === "CLOSED";
-  const locked = isClosed || busy; // desativa os controlos durante um pedido
+  // Desativa os controlos num pedido em curso, numa operação fechada
+  // ou quando o papel não permite a ação (o servidor também recusa).
+  const lockedOperations = isClosed || busy || !mayOperate;
+  const lockedInvoices = isClosed || busy || !mayInvoice;
   const pending = getPendingCount(process);
 
   const tabs: {
@@ -505,7 +513,7 @@ export function ProcessDetails() {
       </div>
 
       {/* Ações */}
-      {!isEditing && !isClosed && (
+      {!isEditing && !isClosed && mayOperate && (
         <div className="flex items-center gap-2">
           <Button
             variant="secondary"
@@ -578,21 +586,21 @@ export function ProcessDetails() {
           <AuthorizationsTab
             process={process}
             onAuthChange={handleAuthChange}
-            locked={locked}
+            locked={lockedOperations}
           />
         )}
         {activeTab === "milestones" && (
           <MilestonesTab
             process={process}
             onToggle={handleMilestoneToggle}
-            locked={locked}
+            locked={lockedOperations}
           />
         )}
         {activeTab === "invoices" && (
           <InvoicesTab
             process={process}
             onInvoiceChange={handleInvoiceChange}
-            locked={locked}
+            locked={lockedInvoices}
           />
         )}
         {activeTab === "files" && (
@@ -601,7 +609,7 @@ export function ProcessDetails() {
             fileError={fileError}
             onAdd={() => fileInputRef.current?.click()}
             onDelete={(fileId) => setShowDeleteFileModal(fileId)}
-            isClosed={isClosed}
+            isClosed={isClosed || !mayOperate}
             busy={busy}
           />
         )}

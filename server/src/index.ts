@@ -13,6 +13,7 @@ import { authRouter } from "./routes/auth";
 import { processesRouter } from "./routes/processes";
 import { itemsRouter } from "./routes/items";
 import { statsRouter } from "./routes/stats";
+import { teamRouter } from "./routes/team";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -39,6 +40,7 @@ app.use("/api", requireAuth);
 app.use("/api", processesRouter);
 app.use("/api", itemsRouter);
 app.use("/api", statsRouter);
+app.use("/api/team", teamRouter);
 
 app.use(errorHandler);
 

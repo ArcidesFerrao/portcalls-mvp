@@ -6,4 +6,6 @@ export const ROUTES = {
   newProcess: "/app/processes/new",
   process: (id: string) => `/app/processes/${id}`,
   settings: "/app/settings",
+  team: "/app/team",
+  invite: (token: string) => `/invite/${token}`,
 };

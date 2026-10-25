@@ -1,3 +1,4 @@
+import type { Role } from "./roles";
 import type {
   PortProcess,
   ProcessStats,
@@ -267,3 +268,79 @@ export async function apiHealthCheck(): Promise<boolean> {
     return false;
   }
 }
+
+// ============ EQUIPA E CONVITES ============
+
+export interface Member {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  disabled: boolean;
+  joinedAt: string;
+}
+
+export interface PendingInvitation {
+  id: string;
+  email: string;
+  role: Role;
+  createdAt: string;
+  expiresAt: string;
+  expired: boolean;
+}
+
+export interface CreatedInvitation {
+  id: string;
+  email: string;
+  role: Role;
+  expiresAt: string;
+  // O link só é devolvido nesta resposta: no servidor fica apenas o hash.
+  link: string;
+}
+
+export interface InvitationInfo {
+  email: string;
+  role: Role;
+  organizationName: string;
+  expiresAt: string;
+}
+
+export const apiListMembers = (): Promise<Member[]> =>
+  fetchApi("/api/team/members");
+
+export const apiUpdateMember = (
+  id: string,
+  data: { role?: Role; disabled?: boolean }
+): Promise<Member> =>
+  fetchApi(`/api/team/members/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+export const apiListInvitations = (): Promise<PendingInvitation[]> =>
+  fetchApi("/api/team/invitations");
+
+export const apiCreateInvitation = (data: {
+  email: string;
+  role: Role;
+}): Promise<CreatedInvitation> =>
+  fetchApi("/api/team/invitations", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const apiRevokeInvitation = (id: string): Promise<void> =>
+  fetchApi(`/api/team/invitations/${id}`, { method: "DELETE" });
+
+// Públicas: quem recebe o link ainda não tem conta
+export const apiGetInvitation = (token: string): Promise<InvitationInfo> =>
+  fetchApi(`/api/auth/invitations/${encodeURIComponent(token)}`);
+
+export const apiAcceptInvitation = (
+  token: string,
+  data: { name: string; password: string }
+): Promise<{ ok: true }> =>
+  fetchApi(`/api/auth/invitations/${encodeURIComponent(token)}/accept`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });

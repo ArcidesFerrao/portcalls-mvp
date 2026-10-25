@@ -7,8 +7,9 @@ import {
   type ReactNode,
 } from "react";
 import { UNAUTHORIZED_EVENT } from "./api";
+import type { Role } from "./roles";
 
-export type Role = "ADMIN" | "COORDENADOR" | "GESTOR" | "FINANCEIRO";
+export type { Role };
 
 export interface AuthUser {
   id: string;

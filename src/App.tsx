@@ -4,12 +4,14 @@ import { AppLayout } from "./components/layout/AppLayout";
 import { ProtectedRoute } from "./components/layout/ProtectedRoute";
 import { Landing } from "./app/Landing";
 import { Login } from "./app/auth/Login";
+import { AcceptInvite } from "./app/auth/AcceptInvite";
 
 import { Dashboard } from "./app/Dashboard";
 import { Demo } from "./app/Demo";
 import { NewProcess } from "./app/NewProcess";
 import { ProcessDetails } from "./app/ProcessDetails";
 import { Setup } from "./app/Setup";
+import { Team } from "./app/Team";
 
 // Mantém os links antigos (/processes/:id) a funcionar
 function LegacyProcessRedirect() {
@@ -25,6 +27,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/demo" element={<Demo />} />
+        <Route path="/invite/:token" element={<AcceptInvite />} />
       </Route>
 
       {/* Protegido */}
@@ -37,8 +40,23 @@ export default function App() {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="processes/new" element={<NewProcess />} />
+        <Route
+          path="processes/new"
+          element={
+            <ProtectedRoute roles={["ADMIN", "COORDENADOR"]}>
+              <NewProcess />
+            </ProtectedRoute>
+          }
+        />
         <Route path="processes/:id" element={<ProcessDetails />} />
+        <Route
+          path="team"
+          element={
+            <ProtectedRoute roles={["ADMIN"]}>
+              <Team />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="settings"
           element={

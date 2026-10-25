@@ -1,16 +1,11 @@
-import { createHash, randomBytes } from "node:crypto";
 import type { CookieOptions, Response } from "express";
 import { prisma } from "./prisma";
+import { generateToken, hashToken } from "./tokens";
 
 export const COOKIE_NAME = "portops_session";
 
 const TTL_DAYS = Number(process.env.SESSION_TTL_DAYS ?? 7);
 const TTL_MS = TTL_DAYS * 24 * 60 * 60 * 1000;
-
-// Na base de dados guardamos só o hash do token: se a tabela vazar,
-// os tokens não servem para entrar.
-const hashToken = (token: string) =>
-  createHash("sha256").update(token).digest("hex");
 
 function cookieOptions(): CookieOptions {
   return {
@@ -26,7 +21,7 @@ export function setSessionCookie(res: Response, token: string) {
 }
 
 export async function createSession(res: Response, userId: string) {
-  const token = randomBytes(32).toString("base64url");
+  const token = generateToken();
   await prisma.session.create({
     data: {
       userId,

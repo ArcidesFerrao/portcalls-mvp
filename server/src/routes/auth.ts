@@ -2,8 +2,10 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { verifyDummy, verifyPassword } from "../lib/passwords";
+import { hashPassword, verifyDummy, verifyPassword } from "../lib/passwords";
 import { COOKIE_NAME, createSession, destroySession } from "../lib/sessions";
+import { HttpError, h, param, parse } from "../lib/http";
+import { hashToken } from "../lib/tokens";
 import { requireAuth } from "../middleware/requireAuth";
 
 export const authRouter = Router();
@@ -87,3 +89,112 @@ authRouter.get("/me", requireAuth, (req, res) => {
     role: a.role,
   });
 });
+
+// ============ CONVITES (público) ============
+// Quem recebe o link ainda não tem conta nem sessão.
+
+const inviteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Demasiadas tentativas. Tente novamente dentro de alguns minutos.",
+  },
+});
+
+// Mesma resposta para token inexistente, usado ou expirado
+async function findValidInvitation(token: string) {
+  const invitation = await prisma.invitation.findUnique({
+    where: { tokenHash: hashToken(token) },
+    include: { organization: { select: { name: true } } },
+  });
+  if (
+    !invitation ||
+    invitation.acceptedAt ||
+    invitation.expiresAt.getTime() < Date.now()
+  ) {
+    throw new HttpError(404, "Convite inválido ou expirado.");
+  }
+  return invitation;
+}
+
+authRouter.get(
+  "/invitations/:token",
+  inviteLimiter,
+  h(async (req, res) => {
+    const invitation = await findValidInvitation(param(req, "token"));
+    res.json({
+      email: invitation.email,
+      role: invitation.role,
+      organizationName: invitation.organization.name,
+      expiresAt: invitation.expiresAt,
+    });
+  })
+);
+
+const acceptSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  password: z.string().max(200),
+});
+
+authRouter.post(
+  "/invitations/:token/accept",
+  inviteLimiter,
+  h(async (req, res) => {
+    const { name, password } = parse(acceptSchema, req.body);
+    if (password.length < 10) {
+      throw new HttpError(
+        400,
+        "A palavra-passe tem de ter pelo menos 10 caracteres."
+      );
+    }
+
+    const invitation = await findValidInvitation(param(req, "token"));
+
+    // O e-mail vem do convite, nunca do pedido
+    const taken = await prisma.user.findUnique({
+      where: { email: invitation.email },
+      select: { id: true },
+    });
+    if (taken) {
+      throw new HttpError(
+        409,
+        "Já existe uma conta com este e-mail. Peça um novo convite ao administrador."
+      );
+    }
+
+    const passwordHash = await hashPassword(password);
+
+    const user = await prisma.$transaction(async (tx) => {
+      // Reclamar o convite de forma atómica: se dois pedidos chegarem
+      // ao mesmo tempo, só um passa.
+      const claimed = await tx.invitation.updateMany({
+        where: {
+          id: invitation.id,
+          acceptedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        data: { acceptedAt: new Date() },
+      });
+      if (claimed.count === 0) {
+        throw new HttpError(404, "Convite inválido ou expirado.");
+      }
+
+      const created = await tx.user.create({
+        data: { email: invitation.email, name, passwordHash },
+      });
+      await tx.membership.create({
+        data: {
+          userId: created.id,
+          organizationId: invitation.organizationId,
+          role: invitation.role,
+        },
+      });
+      return created;
+    });
+
+    await createSession(res, user.id);
+    res.status(201).json({ ok: true });
+  })
+);

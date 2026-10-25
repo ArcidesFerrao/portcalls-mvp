@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardView } from "../components/DashboardView";
 import { loadProcesses, loadStats } from "../lib/data";
+import { useAuth } from "../lib/auth";
+import { canOperate } from "../lib/permissions";
 import { ROUTES } from "../lib/routes";
 import type { PortProcess, ProcessStats } from "../lib/types";
 
@@ -18,6 +20,7 @@ const EMPTY_STATS: ProcessStats = {
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [processes, setProcesses] = useState<PortProcess[]>([]);
   const [stats, setStats] = useState<ProcessStats>(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
@@ -53,7 +56,9 @@ export function Dashboard() {
       error={error}
       onRetry={load}
       onOpenProcess={(id) => navigate(ROUTES.process(id))}
-      onNewProcess={() => navigate(ROUTES.newProcess)}
+      onNewProcess={
+        canOperate(user?.role) ? () => navigate(ROUTES.newProcess) : undefined
+      }
     />
   );
 }
