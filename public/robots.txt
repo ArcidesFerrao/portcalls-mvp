@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /app
+Disallow: /setup
+Disallow: /login
+
+Sitemap: https://portcalls.evolurelabs.com/sitemap.xml
